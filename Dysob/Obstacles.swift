@@ -1,4 +1,3 @@
-// Obstacles.swift
 import SwiftUI
 
 struct Obstacles: View {
@@ -26,12 +25,8 @@ struct Obstacles: View {
         let x = CGFloat(col) * step - maxX
         let y = CGFloat(row) * step - maxY
 
-        return Image(systemName: "tree.fill")
-            .resizable()
-            .scaledToFit()
-            .frame(width: size * 0.8, height: size * 0.8)
-            .foregroundColor(.green)
-            .position(x: x + size / 2, y: y + size / 2)  // align to grid origin
-            .offset(x: size / 2, y: size / 2)             // center within tile
+        return Image(systemName: "tree")
+            .frame(width: size, height: size)
+            .offset(x: x, y: y)
     }
 }
