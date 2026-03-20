@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		DB76F4A72F6BC7BC007F584B /* maze.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = maze.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DB76F4A72F6BC7BC007F584B /* Dysob.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dysob.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		DB76F4A92F6BC7BC007F584B /* maze */ = {
+		DB76F4A92F6BC7BC007F584B /* Dysob */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = maze;
+			path = Dysob;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -32,7 +32,7 @@
 		DB76F49E2F6BC7BC007F584B = {
 			isa = PBXGroup;
 			children = (
-				DB76F4A92F6BC7BC007F584B /* maze */,
+				DB76F4A92F6BC7BC007F584B /* Dysob */,
 				DB76F4A82F6BC7BC007F584B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -40,7 +40,7 @@
 		DB76F4A82F6BC7BC007F584B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				DB76F4A72F6BC7BC007F584B /* maze.app */,
+				DB76F4A72F6BC7BC007F584B /* Dysob.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +48,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		DB76F4A62F6BC7BC007F584B /* maze */ = {
+		DB76F4A62F6BC7BC007F584B /* Dysob */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = DB76F4B22F6BC7BD007F584B /* Build configuration list for PBXNativeTarget "maze" */;
+			buildConfigurationList = DB76F4B22F6BC7BD007F584B /* Build configuration list for PBXNativeTarget "Dysob" */;
 			buildPhases = (
 				DB76F4A32F6BC7BC007F584B /* Sources */,
 				DB76F4A42F6BC7BC007F584B /* Frameworks */,
@@ -61,13 +61,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				DB76F4A92F6BC7BC007F584B /* maze */,
+				DB76F4A92F6BC7BC007F584B /* Dysob */,
 			);
-			name = maze;
+			name = Dysob;
 			packageProductDependencies = (
 			);
 			productName = maze;
-			productReference = DB76F4A72F6BC7BC007F584B /* maze.app */;
+			productReference = DB76F4A72F6BC7BC007F584B /* Dysob.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -85,7 +85,7 @@
 					};
 				};
 			};
-			buildConfigurationList = DB76F4A22F6BC7BC007F584B /* Build configuration list for PBXProject "maze" */;
+			buildConfigurationList = DB76F4A22F6BC7BC007F584B /* Build configuration list for PBXProject "Dysob" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -99,7 +99,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				DB76F4A62F6BC7BC007F584B /* maze */,
+				DB76F4A62F6BC7BC007F584B /* Dysob */,
 			);
 		};
 /* End PBXProject section */
@@ -311,7 +311,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		DB76F4A22F6BC7BC007F584B /* Build configuration list for PBXProject "maze" */ = {
+		DB76F4A22F6BC7BC007F584B /* Build configuration list for PBXProject "Dysob" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DB76F4B02F6BC7BD007F584B /* Debug */,
@@ -320,7 +320,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		DB76F4B22F6BC7BD007F584B /* Build configuration list for PBXNativeTarget "maze" */ = {
+		DB76F4B22F6BC7BD007F584B /* Build configuration list for PBXNativeTarget "Dysob" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DB76F4B32F6BC7BD007F584B /* Debug */,

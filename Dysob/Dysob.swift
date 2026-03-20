@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct mazeApp: App {
+struct Dysob: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
