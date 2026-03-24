@@ -6,7 +6,7 @@ struct Player: View {
     let cameraBoundary: Int
     let step: CGFloat
     let maxY: CGFloat
-    let maze: MazeGenerator
+    let maze: MazeGenerator2
     let maxRowView: Int
     
     var playerRowView: CGFloat {

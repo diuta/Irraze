@@ -3,8 +3,8 @@ import SwiftUI
 struct ContentView: View {
     let size: CGFloat = 25
     let spacing: CGFloat = 5
-    let maze = MazeGenerator(rows: 80, cols: 10)
-    let maxRowView: Int = 15
+    let maze = MazeGenerator2(rows: 80, cols: 10)
+    let maxRowView: Int = 10
     let cameraBoundary: Int = 5
 
     var rows: Int { maze.rows }

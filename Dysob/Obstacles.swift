@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct Obstacles: View {
-    let maze: MazeGenerator
+    let maze: MazeGenerator2
     let size: CGFloat
     let spacing: CGFloat
     let maxRowView: Int
