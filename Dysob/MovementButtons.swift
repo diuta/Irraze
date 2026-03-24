@@ -7,7 +7,7 @@ struct MovementButtons : View {
     var body : some View {
         Button(label, action: action)
             .font(.title2)
-            .frame(width: 50, height: 50)
+            .frame(width: 70, height: 70)
             .background(Color.blue)
             .foregroundColor(.white)
             .cornerRadius(12)

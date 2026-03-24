@@ -3,7 +3,9 @@ import SwiftUI
 struct ContentView: View {
     let size: CGFloat = 25
     let spacing: CGFloat = 5
-    let maze = MazeGenerator(rows: 20, cols: 10)
+    let maze = MazeGenerator(rows: 80, cols: 10)
+    let maxRowView: Int = 15
+    let cameraBoundary: Int = 5
 
     var rows: Int { maze.rows }
     var cols: Int { maze.cols }
@@ -11,26 +13,28 @@ struct ContentView: View {
     @State private var position = CGPoint.zero
     var step: CGFloat { spacing + size }
     var maxX: CGFloat { CGFloat(cols - 1) / 2 * step }
-    var maxY: CGFloat { CGFloat(rows - 1) / 2 * step }
+    var maxY: CGFloat { CGFloat(maxRowView - 1) / 2 * step }
 
     var startPosition: CGPoint { CGPoint(x: step - maxX, y: step - maxY) }
 
     var body: some View {
         VStack {
+            Spacer()
+            
             ZStack {
-                Map(rows: rows, cols: cols, spacing: spacing, size: size)
-                Obstacles(maze: maze, size: size, spacing: spacing)
-                Player(position: position)
+                Map(rows: maxRowView, cols: maze.cols, spacing: spacing, size: size)
+                Obstacles(maze: maze, size: size, spacing: spacing, maxRowView: maxRowView, cameraBoundary: cameraBoundary, position: position, step: step, maxY: maxY)
+                Player(position: position, cameraBoundary: cameraBoundary, step: step, maxY: maxY, maze: maze, maxRowView: maxRowView)
             }
 
             Spacer()
 
-            VStack(spacing: 10) {
-                MovementButtons(label: "↑") { move(x: 0, y: -step) }
-            }
             HStack(spacing: 10) {
                 MovementButtons(label: "←") { move(x: -step, y: 0) }
-                MovementButtons(label: "↓") { move(x: 0, y: step) }
+                VStack(spacing: 10) {
+                    MovementButtons(label: "↑") { move(x: 0, y: -step) }
+                    MovementButtons(label: "↓") { move(x: 0, y: step) }
+                }
                 MovementButtons(label: "→") { move(x: step, y: 0) }
             }
         }
@@ -38,8 +42,8 @@ struct ContentView: View {
     }
 
     func move(x: CGFloat, y: CGFloat) {
-        let newRow = Int(round((position.y + y + maxY) / step))
-        let newCol = Int(round((position.x + x + maxX) / step))
+        let newRow = Int((position.y + y + maxY) / step)
+        let newCol = Int((position.x + x + maxX) / step)
 
         guard newRow >= 0, newRow < rows,
               newCol >= 0, newCol < cols,
