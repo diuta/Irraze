@@ -9,9 +9,10 @@ struct Obstacles: View {
     let position: CGPoint
     let step: CGFloat
     let maxY: CGFloat
+    let maxX: CGFloat
     
     private var cameraShift: Int {
-        let currRow = coordinateToRow(position: position.y, step: step, max: maxY)
+        let currRow = pixelToRow(pixel: position.y, step: step, max: maxY)
         let maxShift = maze.rows - maxRowView
         let isAtBoundary = currRow >= cameraBoundary
         let isMaxShift = (currRow - cameraBoundary) >= maxShift
@@ -35,7 +36,7 @@ struct Obstacles: View {
     }
 
     private func treeIcon(row: Int, col: Int) -> some View {
-        let maxX = CGFloat(maze.cols - 1) / 2 * step
+        let maxX = maxX
         let maxY = CGFloat(maxRowView - 1) / 2 * step
         let x = CGFloat(col) * step - maxX
         let y = CGFloat(row - cameraShift) * step - maxY

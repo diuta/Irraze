@@ -16,9 +16,20 @@ struct MazeGenerator2 {
         generate()
     }
 
+    init(grid: [[Bool]]) {
+        self.rows = grid.count
+        self.cols = grid.first?.count ?? 0
+        self.grid = grid
+    }
+
     func isWall(row: Int, col: Int) -> Bool {
         guard row >= 0, row < rows, col >= 0, col < cols else { return true }
         return grid[row][col]
+    }
+
+    mutating func forceOpen(row: Int, col: Int) {
+        guard row >= 0, row < rows, col >= 0, col < cols else { return }
+        grid[row][col] = false
     }
 
     private mutating func generate() {

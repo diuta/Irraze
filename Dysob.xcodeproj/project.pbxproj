@@ -10,9 +10,22 @@
 		DB76F4A72F6BC7BC007F584B /* Dysob.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dysob.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		DB76F4CC2F6BC7BD007F584B /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DB76F4A62F6BC7BC007F584B /* Dysob */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DB76F4A92F6BC7BC007F584B /* Dysob */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				DB76F4CC2F6BC7BD007F584B /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+			);
 			path = Dysob;
 			sourceTree = "<group>";
 		};
@@ -254,6 +267,8 @@
 				DEVELOPMENT_TEAM = 555V9YK43S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Dysob/Info.plist;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Used to connect with nearby players for multiplayer.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -286,6 +301,8 @@
 				DEVELOPMENT_TEAM = 555V9YK43S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Dysob/Info.plist;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Used to connect with nearby players for multiplayer.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
