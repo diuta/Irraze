@@ -1,12 +1,12 @@
 import SwiftUI
 
 struct Obstacles: View {
+    let maze: MazeGenerator2
     let position: CGPoint
     
     private let step = Constants.step
     private let maxY = Constants.maxY
     private let maxX = Constants.maxX
-    private let maze = Constants.maze
     private let size = Constants.size
     private let maxRowView = Constants.maxRowView
     private let cameraBoundary = Constants.cameraBoundary

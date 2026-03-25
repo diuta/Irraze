@@ -1,7 +1,7 @@
 import SwiftUI
 
 public struct Map: View {
-    private let maze = Constants.maze
+    let maze: MazeGenerator2
     private let maxRowView = Constants.maxRowView
     private let spacing = Constants.spacing
     private let size = Constants.size

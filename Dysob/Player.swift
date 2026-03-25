@@ -2,12 +2,12 @@ import Foundation
 import SwiftUI
 
 struct Player: View {
+    let maze: MazeGenerator2
     let position: CGPoint
 
     private let step = Constants.step
     private let maxY = Constants.maxY
     private let cameraBoundary = Constants.cameraBoundary
-    private let maze = Constants.maze
     private let maxRowView = Constants.maxRowView
     
     var playerRowView: CGFloat {
