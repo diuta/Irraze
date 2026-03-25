@@ -27,11 +27,6 @@ struct MazeGenerator2 {
         return grid[row][col]
     }
 
-    mutating func forceOpen(row: Int, col: Int) {
-        guard row >= 0, row < rows, col >= 0, col < cols else { return }
-        grid[row][col] = false
-    }
-
     private mutating func generate() {
         grid[1][1] = false
 

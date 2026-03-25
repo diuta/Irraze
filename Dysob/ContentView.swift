@@ -31,12 +31,10 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // MARK: - Toolbar
             connectionToolbar
 
             Spacer()
 
-            // MARK: - Maze
             ZStack {
                 Map(rows: maxRowView, cols: maze.cols, spacing: spacing, size: size)
                 Obstacles(maze: maze, size: size, spacing: spacing, maxRowView: maxRowView, cameraBoundary: cameraBoundary, position: position, step: step, maxY: maxY, maxX: maxX)
@@ -58,7 +56,6 @@ struct ContentView: View {
                     }
                 }
 
-                // Waiting overlay
                 if !multipeerManager.gameReady {
                     Color.black.opacity(0.5)
                     VStack(spacing: 12) {
@@ -70,11 +67,9 @@ struct ContentView: View {
                     }
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 8))
 
             Spacer()
 
-            // MARK: - Movement Buttons
             HStack(spacing: 10) {
                 MovementButtons(label: "←") { move(x: -step, y: 0) }
                 VStack(spacing: 10) {
@@ -86,7 +81,6 @@ struct ContentView: View {
             .opacity(multipeerManager.gameReady ? 1.0 : 0.4)
         }
         .onAppear {
-            maze.forceOpen(row: 1, col: maze.cols - 2)
             position = hostStart
             mazeReady = true
         }
@@ -122,11 +116,9 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - Connection Toolbar
 
     private var connectionToolbar: some View {
         HStack {
-            // Status indicator
             HStack(spacing: 6) {
                 Circle()
                     .fill(multipeerManager.isConnected ? Color.green : Color.orange)
@@ -158,7 +150,6 @@ struct ContentView: View {
         .background(Color(.systemGray6))
     }
 
-    // MARK: - Peer List Sheet
 
     private var peerListSheet: some View {
         NavigationView {
@@ -203,7 +194,6 @@ struct ContentView: View {
         .presentationDetents([.medium])
     }
 
-    // MARK: - Movement
 
     func move(x: CGFloat, y: CGFloat) {
         guard multipeerManager.gameReady else { return }
