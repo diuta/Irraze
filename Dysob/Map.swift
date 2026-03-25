@@ -1,10 +1,10 @@
 import SwiftUI
 
 public struct Map: View {
-    var maze: MazeGenerator2
-    var maxRowView: Int
-    var spacing: CGFloat
-    var size: CGFloat
+    private let maze = Constants.maze
+    private let maxRowView = Constants.maxRowView
+    private let spacing = Constants.spacing
+    private let size = Constants.size
     
     public var body: some View {
         VStack (spacing: spacing) {

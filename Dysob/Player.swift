@@ -3,19 +3,20 @@ import SwiftUI
 
 struct Player: View {
     let position: CGPoint
-    let cameraBoundary: Int
-    let step: CGFloat
-    let maxY: CGFloat
-    let maze: MazeGenerator2
-    let maxRowView: Int
+
+    private let step = Constants.step
+    private let maxY = Constants.maxY
+    private let cameraBoundary = Constants.cameraBoundary
+    private let maze = Constants.maze
+    private let maxRowView = Constants.maxRowView
     
     var playerRowView: CGFloat {
-        let currRow = pixelToCoordinate(pixel: position.y, step: step, max: maxY)
+        let currRow = pixelToRow(pixel: position.y)
         let maxShift = maze.rows - maxRowView
         let isAtBoundary = currRow >= cameraBoundary
         let isMaxShift = (currRow - cameraBoundary) >= maxShift
-        let boundaryCoordinate = coordinateToPixel(coordinate: cameraBoundary, step: step, max: maxY)
-        let postBoundaryCoordinate = coordinateToPixel(coordinate: currRow - maxShift, step: step, max: maxY)
+        let boundaryCoordinate = rowToPixel(row: cameraBoundary)
+        let postBoundaryCoordinate = rowToPixel(row: currRow - maxShift)
         return !isAtBoundary ? position.y : isMaxShift ? postBoundaryCoordinate : boundaryCoordinate
     }
 

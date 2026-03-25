@@ -1,18 +1,18 @@
 import SwiftUI
 
 struct Obstacles: View {
-    let maze: MazeGenerator2
-    let size: CGFloat
-    let spacing: CGFloat
-    let maxRowView: Int
-    let cameraBoundary: Int
     let position: CGPoint
-    let step: CGFloat
-    let maxY: CGFloat
-    let maxX: CGFloat
+    
+    private let step = Constants.step
+    private let maxY = Constants.maxY
+    private let maxX = Constants.maxX
+    private let maze = Constants.maze
+    private let size = Constants.size
+    private let maxRowView = Constants.maxRowView
+    private let cameraBoundary = Constants.cameraBoundary
     
     private var cameraShift: Int {
-        let currRow = pixelToCoordinate(pixel: position.y, step: step, max: maxY)
+        let currRow = pixelToRow(pixel: position.y)
         let maxShift = maze.rows - maxRowView
         let isAtBoundary = currRow >= cameraBoundary
         let isMaxShift = (currRow - cameraBoundary) >= maxShift
@@ -31,8 +31,8 @@ struct Obstacles: View {
                         treeIcon(row: row, col: col)
                     }
                     if maze.isFinish(row: row, col: col) {
-                        let xOffset = coordinateToPixel(coordinate: col, step: step, max: maxX)
-                        let yOffset = coordinateToPixel(coordinate: row-cameraShift, step: step, max: maxY)
+                        let xOffset = colToPixel(col: col)
+                        let yOffset = rowToPixel(row: row-cameraShift)
                         Rectangle()
                             .fill(Color.green)
                             .frame(width: size, height: size)
@@ -44,8 +44,8 @@ struct Obstacles: View {
     }
 
     private func treeIcon(row: Int, col: Int) -> some View {
-        let xOffset = coordinateToPixel(coordinate: col, step: step, max: maxX)
-        let yOffset = coordinateToPixel(coordinate: row-cameraShift, step: step, max: maxY)
+        let xOffset = colToPixel(col: col)
+        let yOffset = rowToPixel(row: row-cameraShift)
 
         return Image(systemName: "tree")
             .frame(width: size, height: size)

@@ -1,21 +1,23 @@
 import SwiftUI
 
 struct ContentView: View {
-    let size: CGFloat = 25
-    let spacing: CGFloat = 5
-    let maze = MazeGenerator2(rows: 8, cols: 5)
-    let maxRowView: Int = 5
-    let cameraBoundary: Int = 3
+    let size: CGFloat = Constants.size
+    let spacing: CGFloat = Constants.spacing
+    let maze = Constants.maze
+    let maxRowView: Int = Constants.maxRowView
+    let cameraBoundary: Int = Constants.cameraBoundary
+    
+    let step: CGFloat = Constants.step
+    let maxX: CGFloat = Constants.maxX
+    let maxY: CGFloat = Constants.maxY
 
     @State private var position = CGPoint.zero
-    var step: CGFloat { spacing + size }
-    var maxX: CGFloat { CGFloat(maze.cols - 1) / 2 * step }
-    var maxY: CGFloat { CGFloat(maxRowView - 1) / 2 * step }
-
+    @State private var isFinished = false
+    
     var startPosition: CGPoint {
         CGPoint(
-            x: coordinateToPixel(coordinate: 1, step: step, max: maxX),
-            y: coordinateToPixel(coordinate: 1, step: step, max: maxY)
+            x: colToPixel(col: 1),
+            y: rowToPixel(row: 1)
         )
     }
 
@@ -24,31 +26,20 @@ struct ContentView: View {
             Spacer()
             
             ZStack {
-                Map(
-                    maze: maze,
-                    maxRowView: maxRowView,
-                    spacing: spacing,
-                    size: size
-                )
+                Map()
                 Obstacles(
-                    maze: maze,
-                    size: size,
-                    spacing: spacing,
-                    maxRowView: maxRowView,
-                    cameraBoundary: cameraBoundary,
-                    position: position,
-                    step: step,
-                    maxY: maxY,
-                    maxX: maxX
+                    position: position
                 )
                 Player(
-                    position: position,
-                    cameraBoundary: cameraBoundary,
-                    step: step,
-                    maxY: maxY,
-                    maze: maze,
-                    maxRowView: maxRowView
+                    position: position
                 )
+                
+                if isFinished {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .ignoresSafeArea()
+                }
             }
 
             Spacer()
@@ -74,8 +65,8 @@ struct ContentView: View {
     }
 
     func move(x: CGFloat, y: CGFloat) {
-        let newRow = Int((position.y + y + maxY) / step)
-        let newCol = Int((position.x + x + maxX) / step)
+        let newRow = pixelToRow(pixel: position.y + y)
+        let newCol = pixelToCol(pixel: position.x + x)
 
         guard newRow >= 0, newRow < maze.rows,
               newCol >= 0, newCol < maze.cols,
@@ -83,6 +74,10 @@ struct ContentView: View {
 
         position.x += x
         position.y += y
+        
+        withAnimation {
+            isFinished = maze.isFinish(row: newRow, col: newCol)
+        }
     }
 }
 
