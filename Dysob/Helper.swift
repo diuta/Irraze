@@ -1,9 +1,9 @@
 import Foundation
 
-func coordinateToRow(position: CGFloat, step: CGFloat, max: CGFloat) -> Int {
-    return Int((position + max) / step)
+func pixelToCoordinate(pixel: CGFloat, step: CGFloat, max: CGFloat) -> Int {
+    return Int((pixel + max) / step)
 }
 
-func rowToCoordinate(coordinate: Int, step: CGFloat, max: CGFloat) -> CGFloat {
+func coordinateToPixel(coordinate: Int, step: CGFloat, max: CGFloat) -> CGFloat {
     return CGFloat(coordinate * Int(step) - Int(max))
 }

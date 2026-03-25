@@ -9,9 +9,10 @@ struct Obstacles: View {
     let position: CGPoint
     let step: CGFloat
     let maxY: CGFloat
+    let maxX: CGFloat
     
     private var cameraShift: Int {
-        let currRow = coordinateToRow(position: position.y, step: step, max: maxY)
+        let currRow = pixelToCoordinate(pixel: position.y, step: step, max: maxY)
         let maxShift = maze.rows - maxRowView
         let isAtBoundary = currRow >= cameraBoundary
         let isMaxShift = (currRow - cameraBoundary) >= maxShift
@@ -29,19 +30,25 @@ struct Obstacles: View {
                     if maze.isWall(row: row, col: col) {
                         treeIcon(row: row, col: col)
                     }
+                    if maze.isFinish(row: row, col: col) {
+                        let xOffset = coordinateToPixel(coordinate: col, step: step, max: maxX)
+                        let yOffset = coordinateToPixel(coordinate: row-cameraShift, step: step, max: maxY)
+                        Rectangle()
+                            .fill(Color.green)
+                            .frame(width: size, height: size)
+                            .offset(x: xOffset, y: yOffset)
+                    }
                 }
             }
         }
     }
 
     private func treeIcon(row: Int, col: Int) -> some View {
-        let maxX = CGFloat(maze.cols - 1) / 2 * step
-        let maxY = CGFloat(maxRowView - 1) / 2 * step
-        let x = CGFloat(col) * step - maxX
-        let y = CGFloat(row - cameraShift) * step - maxY
+        let xOffset = coordinateToPixel(coordinate: col, step: step, max: maxX)
+        let yOffset = coordinateToPixel(coordinate: row-cameraShift, step: step, max: maxY)
 
         return Image(systemName: "tree")
             .frame(width: size, height: size)
-            .offset(x: x, y: y)
+            .offset(x: xOffset, y: yOffset)
     }
 }

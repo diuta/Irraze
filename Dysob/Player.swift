@@ -10,14 +10,13 @@ struct Player: View {
     let maxRowView: Int
     
     var playerRowView: CGFloat {
-        let currRow = coordinateToRow(position: position.y, step: step, max: maxY)
+        let currRow = pixelToCoordinate(pixel: position.y, step: step, max: maxY)
         let maxShift = maze.rows - maxRowView
         let isAtBoundary = currRow >= cameraBoundary
         let isMaxShift = (currRow - cameraBoundary) >= maxShift
-        let boundaryCoordinate = rowToCoordinate(coordinate: cameraBoundary, step: step, max: maxY)
-        let postBoundaryCoordinate = rowToCoordinate(coordinate: currRow - maxShift, step: step, max: maxY)
+        let boundaryCoordinate = coordinateToPixel(coordinate: cameraBoundary, step: step, max: maxY)
+        let postBoundaryCoordinate = coordinateToPixel(coordinate: currRow - maxShift, step: step, max: maxY)
         return !isAtBoundary ? position.y : isMaxShift ? postBoundaryCoordinate : boundaryCoordinate
-//        return !isAtBoundary ? position.y : isMaxShift ? postBoundaryCoordinate : boundaryCoordinate
     }
 
     var body: some View {

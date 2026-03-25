@@ -20,6 +20,10 @@ struct MazeGenerator2 {
         guard row >= 0, row < rows, col >= 0, col < cols else { return true }
         return grid[row][col]
     }
+    
+    func isFinish(row: Int, col: Int) -> Bool {
+        return row == rows - 2 && col == cols - 2
+    }
 
     private mutating func generate() {
         grid[1][1] = false
