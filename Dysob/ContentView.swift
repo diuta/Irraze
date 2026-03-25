@@ -2,28 +2,21 @@ import SwiftUI
 import MultipeerConnectivity
 
 struct ContentView: View {
-    let size: CGFloat = 25
-    let spacing: CGFloat = 5
-    let maxRowView: Int = 10
-    let cameraBoundary: Int = 5
-
     @StateObject private var multipeerManager = MultipeerManager()
-    @State private var maze = MazeGenerator2(rows: 80, cols: 10)
+    @State private var maze = MazeGenerator2(rows: Constants.rows, cols: Constants.cols)
     @State private var position = CGPoint.zero
     @State private var mazeReady = false
     @State private var showPeerSheet = false
+    @State private var isFinished = false
 
     var rows: Int { maze.rows }
     var cols: Int { maze.cols }
-    var step: CGFloat { spacing + size }
-    var maxX: CGFloat { CGFloat(cols - 1) / 2 * step }
-    var maxY: CGFloat { CGFloat(maxRowView - 1) / 2 * step }
 
     var hostStart: CGPoint {
-        CGPoint(x: CGFloat(1) * step - maxX, y: CGFloat(1) * step - maxY)
+        CGPoint(x: colToPixel(col: 1), y: rowToPixel(row: 1))
     }
     var guestStart: CGPoint {
-        CGPoint(x: CGFloat(cols - 2) * step - maxX, y: CGFloat(1) * step - maxY)
+        CGPoint(x: colToPixel(col: cols-2), y: rowToPixel(row: 1))
     }
 
     var localColor: Color { multipeerManager.isHost ? .blue : .red }
@@ -32,30 +25,26 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 0) {
             connectionToolbar
-
+            
             Spacer()
-
+            
             ZStack {
-                Map(rows: maxRowView, cols: maze.cols, spacing: spacing, size: size)
-                Obstacles(maze: maze, size: size, spacing: spacing, maxRowView: maxRowView, cameraBoundary: cameraBoundary, position: position, step: step, maxY: maxY, maxX: maxX)
+                Map(maze: maze)
+                Obstacles(maze: maze, position: position)
 
                 if multipeerManager.gameReady {
-                    Player(position: position, color: localColor, cameraBoundary: cameraBoundary, step: step, maxY: maxY, maze: maze, maxRowView: maxRowView)
+                    Player(maze: maze, position: position, color: localColor)
 
                     if let remotePos = multipeerManager.remotePosition {
                         RemotePlayer(
                             remotePosition: remotePos,
                             localPosition: position,
                             color: remoteColor,
-                            cameraBoundary: cameraBoundary,
-                            step: step,
-                            maxY: maxY,
-                            maze: maze,
-                            maxRowView: maxRowView
+                            maze: maze
                         )
                     }
                 }
-
+                
                 if !multipeerManager.gameReady {
                     Color.black.opacity(0.5)
                     VStack(spacing: 12) {
@@ -66,19 +55,28 @@ struct ContentView: View {
                             .foregroundColor(.white)
                     }
                 }
+                
+                if isFinished {
+                    Color.black.opacity(0.5)
+                    VStack{
+                        Text("Congratulations!")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
+                }
             }
-
+            
             Spacer()
 
             HStack(spacing: 10) {
-                MovementButtons(label: "←") { move(x: -step, y: 0) }
+                MovementButtons(label: "arrowshape.left.fill") { move(x: -Constants.step, y: 0) }
                 VStack(spacing: 10) {
-                    MovementButtons(label: "↑") { move(x: 0, y: -step) }
-                    MovementButtons(label: "↓") { move(x: 0, y: step) }
+                    MovementButtons(label: "arrowshape.up.fill") { move(x: 0, y: -Constants.step) }
+                    MovementButtons(label: "arrowshape.down.fill") { move(x: 0, y: Constants.step) }
                 }
-                MovementButtons(label: "→") { move(x: step, y: 0) }
+                MovementButtons(label: "arrowshape.right.fill") { move(x: Constants.step, y: 0) }
             }
-            .opacity(multipeerManager.gameReady ? 1.0 : 0.4)
         }
         .onAppear {
             position = hostStart
@@ -198,8 +196,8 @@ struct ContentView: View {
     func move(x: CGFloat, y: CGFloat) {
         guard multipeerManager.gameReady else { return }
 
-        let newRow = Int((position.y + y + maxY) / step)
-        let newCol = Int((position.x + x + maxX) / step)
+        let newRow = pixelToRow(pixel: position.y + y)
+        let newCol = pixelToCol(pixel: position.x + x)
 
         guard newRow >= 0, newRow < rows,
               newCol >= 0, newCol < cols,
@@ -208,6 +206,10 @@ struct ContentView: View {
         position.x += x
         position.y += y
         multipeerManager.sendPosition(position)
+        
+        withAnimation {
+            isFinished = maze.isFinish(row: newRow, col: newCol)
+        }
     }
 }
 

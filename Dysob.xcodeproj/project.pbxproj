@@ -11,7 +11,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		DB76F4CC2F6BC7BD007F584B /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		DB76F4CC2F6BC7BD007F584B /* Exceptions for "Dysob" folder in "Dysob" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -24,7 +24,7 @@
 		DB76F4A92F6BC7BC007F584B /* Dysob */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				DB76F4CC2F6BC7BD007F584B /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+				DB76F4CC2F6BC7BD007F584B /* Exceptions for "Dysob" folder in "Dysob" target */,
 			);
 			path = Dysob;
 			sourceTree = "<group>";

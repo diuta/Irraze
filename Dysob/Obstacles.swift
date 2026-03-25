@@ -2,17 +2,17 @@ import SwiftUI
 
 struct Obstacles: View {
     let maze: MazeGenerator2
-    let size: CGFloat
-    let spacing: CGFloat
-    let maxRowView: Int
-    let cameraBoundary: Int
     let position: CGPoint
-    let step: CGFloat
-    let maxY: CGFloat
-    let maxX: CGFloat
+    
+    private let step = Constants.step
+    private let maxY = Constants.maxY
+    private let maxX = Constants.maxX
+    private let size = Constants.size
+    private let maxRowView = Constants.maxRowView
+    private let cameraBoundary = Constants.cameraBoundary
     
     private var cameraShift: Int {
-        let currRow = pixelToRow(pixel: position.y, step: step, max: maxY)
+        let currRow = pixelToRow(pixel: position.y)
         let maxShift = maze.rows - maxRowView
         let isAtBoundary = currRow >= cameraBoundary
         let isMaxShift = (currRow - cameraBoundary) >= maxShift
@@ -30,19 +30,25 @@ struct Obstacles: View {
                     if maze.isWall(row: row, col: col) {
                         treeIcon(row: row, col: col)
                     }
+                    if maze.isFinish(row: row, col: col) {
+                        let xOffset = colToPixel(col: col)
+                        let yOffset = rowToPixel(row: row-cameraShift)
+                        Rectangle()
+                            .fill(Color.green)
+                            .frame(width: size, height: size)
+                            .offset(x: xOffset, y: yOffset)
+                    }
                 }
             }
         }
     }
 
     private func treeIcon(row: Int, col: Int) -> some View {
-        let maxX = maxX
-        let maxY = CGFloat(maxRowView - 1) / 2 * step
-        let x = CGFloat(col) * step - maxX
-        let y = CGFloat(row - cameraShift) * step - maxY
-
+        let xOffset = colToPixel(col: col)
+        let yOffset = rowToPixel(row: row-cameraShift)
+        
         return Image(systemName: "tree")
             .frame(width: size, height: size)
-            .offset(x: x, y: y)
+            .offset(x: xOffset, y: yOffset)
     }
 }

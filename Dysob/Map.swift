@@ -1,20 +1,16 @@
 import SwiftUI
 
 public struct Map: View {
-    var rows: Int
-    var cols: Int
-    var spacing: CGFloat
-    var size: CGFloat
+    let maze: MazeGenerator2
+    private let maxRowView = Constants.maxRowView
+    private let spacing = Constants.spacing
+    private let size = Constants.size
     
     public var body: some View {
-        let rows = rows
-        let cols = cols
-        let spacing = spacing
-        
         VStack (spacing: spacing) {
-            ForEach(0..<rows, id: \.self) { row in
+            ForEach(0..<maxRowView, id: \.self) { row in
                 HStack (spacing: spacing){
-                    ForEach(0..<cols, id: \.self) { col in
+                    ForEach(0..<maze.cols, id: \.self) { col in
                         Rectangle()
                             .fill(Color.gray.opacity(0.3))
                             .frame(width: size, height: size)

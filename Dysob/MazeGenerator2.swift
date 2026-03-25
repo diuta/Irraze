@@ -6,12 +6,10 @@ struct MazeGenerator2 {
     private(set) var grid: [[Bool]]
 
     init(rows: Int, cols: Int) {
-        let r = rows % 2 == 0 ? rows + 1 : rows
-        let c = cols % 2 == 0 ? cols + 1 : cols
-        self.rows = r
-        self.cols = c
+        self.rows = rows
+        self.cols = cols
 
-        self.grid = Array(repeating: Array(repeating: true, count: c), count: r)
+        self.grid = Array(repeating: Array(repeating: true, count: cols), count: rows)
 
         generate()
     }
@@ -25,6 +23,10 @@ struct MazeGenerator2 {
     func isWall(row: Int, col: Int) -> Bool {
         guard row >= 0, row < rows, col >= 0, col < cols else { return true }
         return grid[row][col]
+    }
+
+    func isFinish(row: Int, col: Int) -> Bool {
+        return row == rows - 2 && col == cols - 2
     }
 
     private mutating func generate() {

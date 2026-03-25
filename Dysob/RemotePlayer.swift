@@ -4,14 +4,15 @@ struct RemotePlayer: View {
     let remotePosition: CGPoint
     let localPosition: CGPoint
     let color: Color
-    let cameraBoundary: Int
-    let step: CGFloat
-    let maxY: CGFloat
     let maze: MazeGenerator2
-    let maxRowView: Int
+
+    private let step = Constants.step
+    private let maxY = Constants.maxY
+    private let cameraBoundary = Constants.cameraBoundary
+    private let maxRowView = Constants.maxRowView
 
     private var localCameraShift: Int {
-        let currRow = pixelToRow(pixel: localPosition.y, step: step, max: maxY)
+        let currRow = pixelToRow(pixel: localPosition.y)
         let maxShift = maze.rows - maxRowView
         let isAtBoundary = currRow >= cameraBoundary
         let isMaxShift = (currRow - cameraBoundary) >= maxShift
@@ -19,7 +20,7 @@ struct RemotePlayer: View {
     }
 
     private var remoteRow: Int {
-        pixelToRow(pixel: remotePosition.y, step: step, max: maxY)
+        pixelToRow(pixel: remotePosition.y)
     }
 
     private var isVisible: Bool {
@@ -29,7 +30,7 @@ struct RemotePlayer: View {
 
     var remoteVisualY: CGFloat {
         let visualRow = remoteRow - localCameraShift
-        return rowToPixel(row: visualRow, step: step, max: maxY)
+        return rowToPixel(row: visualRow)
     }
 
     var body: some View {
