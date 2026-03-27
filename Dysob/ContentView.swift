@@ -26,8 +26,6 @@ struct ContentView: View {
         VStack(spacing: 0) {
             connectionToolbar
             
-            Spacer()
-            
             ZStack {
                 Map(maze: maze)
                 Obstacles(maze: maze, position: position)
@@ -73,18 +71,25 @@ struct ContentView: View {
                     }
                 }
             }
-            
-            Spacer()
+            .frame(width: 350, height: 350)
+            .padding(.top, 30)
 
-            HStack(spacing: 10) {
-                MovementButtons(label: "arrowshape.left.fill") { move(x: -Constants.step, y: 0) }
-                VStack(spacing: 10) {
-                    MovementButtons(label: "arrowshape.up.fill") { move(x: 0, y: -Constants.step) }
-                    MovementButtons(label: "arrowshape.down.fill") { move(x: 0, y: Constants.step) }
+            Spacer()
+            
+            HStack() {
+                HStack(spacing: 0) {
+                    MovementButtons(label: "", width: 50, height: 40) { move(x: -Constants.step, y: 0) }
+                    VStack(spacing: 0) {
+                        MovementButtons(label: "", width: 40, height: 60) { move(x: 0, y: -Constants.step) }
+                        MovementButtons(label: "", width: 40, height: 60) { move(x: 0, y: Constants.step) }
+                    }
+                    MovementButtons(label: "", width: 50, height: 40) { move(x: Constants.step, y: 0) }
                 }
-                MovementButtons(label: "arrowshape.right.fill") { move(x: Constants.step, y: 0) }
             }
+            .padding(.bottom, 30)
+            .shadow(radius: 10)
         }
+        .background(Color(Constants.bodyColor))
         .onAppear {
             position = hostStart
             mazeReady = true
@@ -152,7 +157,7 @@ struct ContentView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(Color(.systemGray6))
+        .background(Color(Constants.secondaryBodyColor))
     }
 
 

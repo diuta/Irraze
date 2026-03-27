@@ -12,4 +12,7 @@ public enum Constants {
     static var step: CGFloat { spacing + size }
     static var maxX: CGFloat { CGFloat(cols - 1) / 2 * step }
     static var maxY: CGFloat { CGFloat(maxRowView - 1) / 2 * step }
+    
+    static let bodyColor = Color(red: 168/255, green: 211/255, blue: 174/255, opacity: 1.0)
+    static let secondaryBodyColor = Color(red: 158/255, green: 201/255, blue: 164/255, opacity: 1.0)
 }
