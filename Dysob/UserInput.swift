@@ -2,12 +2,10 @@ import Foundation
 import SwiftUI
 
 struct UserInput: View {
-    @StateObject private var multipeerManager = MultipeerManager()
-    @State private var maze = MazeGenerator2(rows: Constants.rows, cols: Constants.cols)
-    @State private var position = CGPoint.zero
-    @State private var mazeReady = false
-    @State private var showPeerSheet = false
-    @State private var isFinished = false
+    @Binding var maze: MazeGenerator2
+    @Binding var position: CGPoint
+    @Binding var isFinished: Bool
+    @ObservedObject var multipeerManager: MultipeerManager
     
     var body: some View {
         movementButtons
@@ -16,21 +14,30 @@ struct UserInput: View {
     private var movementButtons: some View {
         HStack() {
             HStack(spacing: 0) {
-                MovementButtons(label: "", width: 50, height: 40) { move(x: -Constants.step, y: 0) }
+                MovementButtons(label: "", width: 60, height: 40) { move(x: -Constants.step, y: 0) }
                 VStack(spacing: 0) {
-                    MovementButtons(label: "", width: 40, height: 60) { move(x: 0, y: -Constants.step) }
-                    MovementButtons(label: "", width: 40, height: 60) { move(x: 0, y: Constants.step) }
+                    MovementButtons(label: "", width: 40, height: 70) { move(x: 0, y: -Constants.step) }
+                    MovementButtons(label: "", width: 40, height: 70) { move(x: 0, y: Constants.step) }
                 }
-                MovementButtons(label: "", width: 50, height: 40) { move(x: Constants.step, y: 0) }
+                MovementButtons(label: "", width: 60, height: 40) { move(x: Constants.step, y: 0) }
             }
+            
+            Spacer()
             
             VStack{
                 Circle()
                     .fill(Color.red)
                     .frame(width: 70, height: 70)
+                    .offset(x: -50)
+                Circle()
+                    .fill(Color.red)
+                    .frame(width: 70, height: 70)
             }
         }
-        .padding(.bottom, 30)
+        .padding(30)
+        .padding(.bottom, 60)
+        .shadow(radius: 10)
+//        .background(Color.blue)
     }
 
     func move(x: CGFloat, y: CGFloat) {
@@ -60,5 +67,10 @@ struct UserInput: View {
 }
 
 #Preview {
-    UserInput()
+    UserInput(
+        maze: .constant(MazeGenerator2(rows: Constants.rows, cols: Constants.cols)),
+        position: .constant(.zero),
+        isFinished: .constant(false),
+        multipeerManager: MultipeerManager()
+    )
 }

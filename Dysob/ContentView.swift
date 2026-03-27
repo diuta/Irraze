@@ -24,8 +24,6 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            connectionToolbar
-            
             ZStack {
                 Map(maze: maze)
                 Obstacles(maze: maze, position: position)
@@ -71,23 +69,34 @@ struct ContentView: View {
                     }
                 }
             }
-            .frame(width: 350, height: 350)
+            .frame(width: 350, height: 330)
+            .background(Color(Constants.screenColor))
             .padding(.top, 30)
+            
+            Spacer()
 
+            connectionToolbar
+            
             Spacer()
             
-            HStack() {
-                HStack(spacing: 0) {
-                    MovementButtons(label: "", width: 50, height: 40) { move(x: -Constants.step, y: 0) }
-                    VStack(spacing: 0) {
-                        MovementButtons(label: "", width: 40, height: 60) { move(x: 0, y: -Constants.step) }
-                        MovementButtons(label: "", width: 40, height: 60) { move(x: 0, y: Constants.step) }
-                    }
-                    MovementButtons(label: "", width: 50, height: 40) { move(x: Constants.step, y: 0) }
-                }
-            }
-            .padding(.bottom, 30)
-            .shadow(radius: 10)
+//            HStack() {
+//                HStack(spacing: 0) {
+//                    MovementButtons(label: "", width: 50, height: 40) { move(x: -Constants.step, y: 0) }
+//                    VStack(spacing: 0) {
+//                        MovementButtons(label: "", width: 40, height: 60) { move(x: 0, y: -Constants.step) }
+//                        MovementButtons(label: "", width: 40, height: 60) { move(x: 0, y: Constants.step) }
+//                    }
+//                    MovementButtons(label: "", width: 50, height: 40) { move(x: Constants.step, y: 0) }
+//                }
+//            }
+//            .padding(.bottom, 30)
+//            .shadow(radius: 10)
+            UserInput(
+                maze: $maze,
+                position: $position,
+                isFinished: $isFinished,
+                multipeerManager: multipeerManager
+            )
         }
         .background(Color(Constants.bodyColor))
         .onAppear {
@@ -126,7 +135,6 @@ struct ContentView: View {
         }
     }
 
-
     private var connectionToolbar: some View {
         HStack {
             HStack(spacing: 6) {
@@ -159,6 +167,35 @@ struct ContentView: View {
         .padding(.vertical, 8)
         .background(Color(Constants.secondaryBodyColor))
     }
+    
+//    private var connectionToolbar: some View {
+//        HStack {
+//            if multipeerManager.isConnected {
+//                Button("Disconnect") {
+//                    multipeerManager.disconnect()
+//                }
+//                .font(.caption)
+//                .foregroundColor(.red)
+//            } else {
+//                Button("Find Players") {
+//                    multipeerManager.startBrowsing()
+//                    showPeerSheet = true
+//                }
+//                .font(.caption.bold())
+//            }
+//            
+//            Spacer()
+//            
+//            HStack(spacing: 6) {
+//                Circle()
+//                    .fill(multipeerManager.isConnected ? Color.green : Color.orange)
+//                    .frame(width: 8, height: 8)
+//            }
+//        }
+//        .padding(.horizontal, 50)
+//        .padding(.vertical, 8)
+//    }
+
 
 
     private var peerListSheet: some View {
@@ -205,30 +242,30 @@ struct ContentView: View {
     }
 
 
-    func move(x: CGFloat, y: CGFloat) {
-        guard multipeerManager.gameReady else { return }
-
-        let newRow = pixelToRow(pixel: position.y + y)
-        let newCol = pixelToCol(pixel: position.x + x)
-
-        guard newRow >= 0, newRow < rows,
-              newCol >= 0, newCol < cols,
-              !maze.isFinish(
-                row: pixelToRow(pixel: position.y),
-                col: pixelToCol(pixel: position.x)
-              ),
-              !maze.isWall(row: newRow, col: newCol) else { return }
-
-        position.x += x
-        position.y += y
-        multipeerManager.sendPosition(position)
-
-        isFinished = maze.isFinish(row: newRow, col: newCol)
-        
-        if isFinished {
-            multipeerManager.sendGameOver()
-        }
-    }
+//    func move(x: CGFloat, y: CGFloat) {
+//        guard multipeerManager.gameReady else { return }
+//
+//        let newRow = pixelToRow(pixel: position.y + y)
+//        let newCol = pixelToCol(pixel: position.x + x)
+//
+//        guard newRow >= 0, newRow < rows,
+//              newCol >= 0, newCol < cols,
+//              !maze.isFinish(
+//                row: pixelToRow(pixel: position.y),
+//                col: pixelToCol(pixel: position.x)
+//              ),
+//              !maze.isWall(row: newRow, col: newCol) else { return }
+//
+//        position.x += x
+//        position.y += y
+//        multipeerManager.sendPosition(position)
+//
+//        isFinished = maze.isFinish(row: newRow, col: newCol)
+//        
+//        if isFinished {
+//            multipeerManager.sendGameOver()
+//        }
+//    }
 }
 
 #Preview {
