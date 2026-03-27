@@ -13,7 +13,7 @@ public struct Map: View {
                     ForEach(0..<maze.cols, id: \.self) { col in
                         Rectangle()
                             .frame(width: size, height: size)
-//                            .opacity(0.002)
+                            .opacity(0.002)
                     }
                 }
             }

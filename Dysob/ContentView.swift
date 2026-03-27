@@ -75,9 +75,9 @@ struct ContentView: View {
                             }
                         }
                     }
-                    .offset(x:-63)
+                    .frame(maxWidth: .infinity)
                 }
-                .offset(x: 185, y: 200)
+                .padding(.top, geo.size.height * 0.10)
                 
                 connectionToolbar
                     .offset(y: 465)

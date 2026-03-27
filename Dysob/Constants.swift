@@ -5,7 +5,7 @@ public enum Constants {
     static let size: CGFloat = 25
     static let spacing: CGFloat = 5
     static let rows: Int = 51
-    static let cols: Int = 11
+    static let cols: Int = 9
     static let maxRowView: Int = 10
     static let cameraBoundary: Int = 5
     
