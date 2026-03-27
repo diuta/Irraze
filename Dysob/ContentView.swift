@@ -56,13 +56,20 @@ struct ContentView: View {
                     }
                 }
                 
-                if isFinished {
+                if isFinished || multipeerManager.opponentWon {
                     Color.black.opacity(0.5)
                     VStack{
-                        Text("Congratulations!")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
+                        if isFinished {
+                            Text("YOU WIN!")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                        } else {
+                            Text("YOU LOSE!")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                        }
                     }
                 }
             }
@@ -201,14 +208,20 @@ struct ContentView: View {
 
         guard newRow >= 0, newRow < rows,
               newCol >= 0, newCol < cols,
+              !maze.isFinish(
+                row: pixelToRow(pixel: position.y),
+                col: pixelToCol(pixel: position.x)
+              ),
               !maze.isWall(row: newRow, col: newCol) else { return }
 
         position.x += x
         position.y += y
         multipeerManager.sendPosition(position)
+
+        isFinished = maze.isFinish(row: newRow, col: newCol)
         
-        withAnimation {
-            isFinished = maze.isFinish(row: newRow, col: newCol)
+        if isFinished {
+            multipeerManager.sendGameOver()
         }
     }
 }

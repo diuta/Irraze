@@ -16,6 +16,7 @@ class MultipeerManager: NSObject, ObservableObject {
     @Published var gameReady = false
     @Published var remotePosition: CGPoint? = nil
     @Published var receivedMazeGrid: [[Bool]]? = nil
+    @Published var opponentWon: Bool = false
 
     // Discovery
     @Published var discoveredPeers: [MCPeerID] = []
@@ -128,6 +129,15 @@ class MultipeerManager: NSObject, ObservableObject {
             self.gameReady = true
         }
     }
+    
+    func sendGameOver() {
+        guard isConnected else { return }
+        let message = PlayerMessage.gameOver
+        send(message)
+        DispatchQueue.main.async {
+            self.gameReady = true
+        }
+    }
 
     private func send(_ message: PlayerMessage) {
         guard let data = try? JSONEncoder().encode(message),
@@ -169,8 +179,9 @@ extension MultipeerManager: MCSessionDelegate {
                 self.remotePosition = CGPoint(x: x, y: y)
             case .maze(let grid):
                 self.receivedMazeGrid = grid
-                // Guest is ready once maze is received
                 self.gameReady = true
+            case .gameOver:
+                self.opponentWon = true
             }
         }
     }
