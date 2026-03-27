@@ -11,8 +11,9 @@ struct MovementButtons : View {
             Image(systemName: label)
                 .font(.title)
                 .frame(width: width, height: height)
-                .background(Color.yellow)
-                .foregroundColor(.white)
+                .background(Color.black)
+                .opacity(0.05)
+//                .foregroundColor(.white)
 //                .cornerRadius(12)
         }
     }

@@ -23,82 +23,75 @@ struct ContentView: View {
     var remoteColor: Color { multipeerManager.isHost ? .red : .blue }
 
     var body: some View {
-        VStack(spacing: 0) {
-            ZStack {
-                Map(maze: maze)
-                Obstacles(maze: maze, position: position)
-
-                if multipeerManager.gameReady {
-                    Player(maze: maze, position: position, color: localColor)
-
-                    if let remotePos = multipeerManager.remotePosition {
-                        RemotePlayer(
-                            remotePosition: remotePos,
-                            localPosition: position,
-                            color: remoteColor,
-                            maze: maze
-                        )
-                    }
-                }
-                
-                if !multipeerManager.gameReady {
-                    Color.black.opacity(0.5)
-                    VStack(spacing: 12) {
-                        ProgressView()
-                            .tint(.white)
-                        Text("Waiting for opponent...")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                    }
-                }
-                
-                if isFinished || multipeerManager.opponentWon {
-                    Color.black.opacity(0.5)
-                    VStack{
-                        if isFinished {
-                            Text("YOU WIN!")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                        } else {
-                            Text("YOU LOSE!")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
+        GeometryReader { geo in
+            Image("bmo")
+                .resizable()
+                .scaledToFill()
+                .ignoresSafeArea()
+            
+            ZStack(alignment: .topLeading) {
+                ZStack(alignment: .topLeading) {
+                    ZStack {
+                        Map(maze: maze)
+                        Obstacles(maze: maze, position: position)
+                        
+                        if multipeerManager.gameReady {
+                            Player(maze: maze, position: position, color: localColor)
+                            
+                            if let remotePos = multipeerManager.remotePosition {
+                                RemotePlayer(
+                                    remotePosition: remotePos,
+                                    localPosition: position,
+                                    color: remoteColor,
+                                    maze: maze
+                                )
+                            }
+                        }
+                        
+                        if !multipeerManager.gameReady {
+                            VStack(spacing: 12) {
+                                ProgressView()
+                                    .tint(.white)
+                                Text("Waiting for opponent...")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                            }
+                            .shadow(radius: 30)
+                        }
+                        
+                        if isFinished || multipeerManager.opponentWon {
+                            VStack{
+                                if isFinished {
+                                    Text("YOU WIN!")
+                                        .font(.largeTitle)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                } else {
+                                    Text("YOU LOSE!")
+                                        .font(.largeTitle)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                }
+                            }
                         }
                     }
+                    .offset(x:-63)
                 }
+                .offset(x: 185, y: 200)
+                
+                connectionToolbar
+                    .offset(y: 465)
+                
+                UserInput(
+                    maze: $maze,
+                    position: $position,
+                    isFinished: $isFinished,
+                    multipeerManager: multipeerManager
+                )
+                .offset(x: -10, y:533)
+                
             }
-            .frame(width: 350, height: 330)
-            .background(Color(Constants.screenColor))
-            .padding(.top, 30)
-            
-            Spacer()
-
-            connectionToolbar
-            
-            Spacer()
-            
-//            HStack() {
-//                HStack(spacing: 0) {
-//                    MovementButtons(label: "", width: 50, height: 40) { move(x: -Constants.step, y: 0) }
-//                    VStack(spacing: 0) {
-//                        MovementButtons(label: "", width: 40, height: 60) { move(x: 0, y: -Constants.step) }
-//                        MovementButtons(label: "", width: 40, height: 60) { move(x: 0, y: Constants.step) }
-//                    }
-//                    MovementButtons(label: "", width: 50, height: 40) { move(x: Constants.step, y: 0) }
-//                }
-//            }
-//            .padding(.bottom, 30)
-//            .shadow(radius: 10)
-            UserInput(
-                maze: $maze,
-                position: $position,
-                isFinished: $isFinished,
-                multipeerManager: multipeerManager
-            )
         }
-        .background(Color(Constants.bodyColor))
         .onAppear {
             position = hostStart
             mazeReady = true
@@ -134,67 +127,44 @@ struct ContentView: View {
             Text("\(multipeerManager.pendingInvitePeerName ?? "Someone") wants to play with you")
         }
     }
-
+    
     private var connectionToolbar: some View {
         HStack {
+            if multipeerManager.isConnected {
+                Button {
+                    multipeerManager.disconnect()
+                } label: {
+                    Rectangle()
+                        .fill(Color.black)
+                        .opacity(0.2)
+                        .frame(width: 210, height: 25)
+                }
+                .padding(.leading, 25)
+            } else {
+                Button {
+                    multipeerManager.startBrowsing()
+                    showPeerSheet = true
+                } label: {
+                    Rectangle()
+                        .fill(Color.black)
+                        .opacity(0.2)
+                        .frame(width: 200, height: 25)
+                }
+                .padding(.leading, 25)
+//                .padding(.bottom, 10)
+//                .background(Color.red)
+            }
+            
+            Spacer()
+            
             HStack(spacing: 6) {
                 Circle()
                     .fill(multipeerManager.isConnected ? Color.green : Color.orange)
-                    .frame(width: 8, height: 8)
-                Text(multipeerManager.statusText)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-            }
-
-            Spacer()
-
-            if multipeerManager.isConnected {
-                Button("Disconnect") {
-                    multipeerManager.disconnect()
-                }
-                .font(.caption)
-                .foregroundColor(.red)
-            } else {
-                Button("Find Players") {
-                    multipeerManager.startBrowsing()
-                    showPeerSheet = true
-                }
-                .font(.caption.bold())
+                    .frame(width: 30, height: 30)
+                    .padding(.trailing, 50)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(Color(Constants.secondaryBodyColor))
     }
-    
-//    private var connectionToolbar: some View {
-//        HStack {
-//            if multipeerManager.isConnected {
-//                Button("Disconnect") {
-//                    multipeerManager.disconnect()
-//                }
-//                .font(.caption)
-//                .foregroundColor(.red)
-//            } else {
-//                Button("Find Players") {
-//                    multipeerManager.startBrowsing()
-//                    showPeerSheet = true
-//                }
-//                .font(.caption.bold())
-//            }
-//            
-//            Spacer()
-//            
-//            HStack(spacing: 6) {
-//                Circle()
-//                    .fill(multipeerManager.isConnected ? Color.green : Color.orange)
-//                    .frame(width: 8, height: 8)
-//            }
-//        }
-//        .padding(.horizontal, 50)
-//        .padding(.vertical, 8)
-//    }
 
 
 
@@ -240,32 +210,6 @@ struct ContentView: View {
         }
         .presentationDetents([.medium])
     }
-
-
-//    func move(x: CGFloat, y: CGFloat) {
-//        guard multipeerManager.gameReady else { return }
-//
-//        let newRow = pixelToRow(pixel: position.y + y)
-//        let newCol = pixelToCol(pixel: position.x + x)
-//
-//        guard newRow >= 0, newRow < rows,
-//              newCol >= 0, newCol < cols,
-//              !maze.isFinish(
-//                row: pixelToRow(pixel: position.y),
-//                col: pixelToCol(pixel: position.x)
-//              ),
-//              !maze.isWall(row: newRow, col: newCol) else { return }
-//
-//        position.x += x
-//        position.y += y
-//        multipeerManager.sendPosition(position)
-//
-//        isFinished = maze.isFinish(row: newRow, col: newCol)
-//        
-//        if isFinished {
-//            multipeerManager.sendGameOver()
-//        }
-//    }
 }
 
 #Preview {

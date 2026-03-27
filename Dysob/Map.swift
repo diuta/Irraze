@@ -12,8 +12,8 @@ public struct Map: View {
                 HStack (spacing: spacing){
                     ForEach(0..<maze.cols, id: \.self) { col in
                         Rectangle()
-                            .fill(Color.gray.opacity(0.3))
                             .frame(width: size, height: size)
+//                            .opacity(0.002)
                     }
                 }
             }

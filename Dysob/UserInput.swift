@@ -12,32 +12,45 @@ struct UserInput: View {
     }
     
     private var movementButtons: some View {
-        HStack() {
+        HStack(spacing: 125) {
             HStack(spacing: 0) {
-                MovementButtons(label: "", width: 60, height: 40) { move(x: -Constants.step, y: 0) }
+                MovementButtons(label: "", width: 50, height: 50) { move(x: -Constants.step, y: 0) }
                 VStack(spacing: 0) {
-                    MovementButtons(label: "", width: 40, height: 70) { move(x: 0, y: -Constants.step) }
-                    MovementButtons(label: "", width: 40, height: 70) { move(x: 0, y: Constants.step) }
+                    MovementButtons(label: "", width: 50, height: 50) { move(x: 0, y: -Constants.step) }
+                    Rectangle()
+                        .frame(width: 50, height: 50)
+                        .background(Color.black)
+                        .opacity(0.025)
+                    MovementButtons(label: "", width: 50, height: 50) { move(x: 0, y: Constants.step) }
                 }
-                MovementButtons(label: "", width: 60, height: 40) { move(x: Constants.step, y: 0) }
+                MovementButtons(label: "", width: 50, height: 50) { move(x: Constants.step, y: 0) }
             }
-            
-            Spacer()
-            
+                        
             VStack{
-                Circle()
-                    .fill(Color.red)
-                    .frame(width: 70, height: 70)
-                    .offset(x: -50)
-                Circle()
-                    .fill(Color.red)
-                    .frame(width: 70, height: 70)
+                Button{
+                    
+                } label: {
+                    Circle()
+                        .fill(Color.black)
+                        .opacity(0.1)
+                        .frame(width: 70, height: 70)
+                }
+                .offset(x: -65)
+
+                Button{
+                    
+                } label: {
+                    Circle()
+                        .fill(Color.black)
+                        .opacity(0.1)
+                        .frame(width: 70, height: 70)
+                }
+                .offset(x: 10)
+
             }
         }
         .padding(30)
         .padding(.bottom, 60)
-        .shadow(radius: 10)
-//        .background(Color.blue)
     }
 
     func move(x: CGFloat, y: CGFloat) {
@@ -52,6 +65,7 @@ struct UserInput: View {
                 row: pixelToRow(pixel: position.y),
                 col: pixelToCol(pixel: position.x)
               ),
+              !multipeerManager.opponentWon,
               !maze.isWall(row: newRow, col: newCol) else { return }
 
         position.x += x
