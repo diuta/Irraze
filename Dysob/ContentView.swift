@@ -24,7 +24,7 @@ struct ContentView: View {
 
     var body: some View {
         GeometryReader { geo in
-            Image("bmo")
+            Image("bmo2")
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
@@ -32,10 +32,9 @@ struct ContentView: View {
             ZStack(alignment: .topLeading) {
                 ZStack(alignment: .topLeading) {
                     ZStack {
-                        Map(maze: maze)
-                        Obstacles(maze: maze, position: position)
-                        
                         if multipeerManager.gameReady {
+                            Map(maze: maze)
+                            Obstacles(maze: maze, position: position)
                             Player(maze: maze, position: position, color: localColor)
                             
                             if let remotePos = multipeerManager.remotePosition {
@@ -52,25 +51,45 @@ struct ContentView: View {
                             VStack(spacing: 12) {
                                 ProgressView()
                                     .tint(.white)
+                                    .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 0)
                                 Text("Waiting for opponent...")
                                     .font(.headline)
                                     .foregroundColor(.white)
                             }
-                            .shadow(radius: 30)
+                            .padding(.top, geo.size.height * 0.15)
+                            .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 0)
                         }
                         
                         if isFinished || multipeerManager.opponentWon {
-                            VStack{
+                            VStack(spacing: 16){
                                 if isFinished {
                                     Text("YOU WIN!")
                                         .font(.largeTitle)
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
+                                        .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 0)
                                 } else {
                                     Text("YOU LOSE!")
                                         .font(.largeTitle)
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
+                                        .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 0)
+                                }
+                                
+                                Button {
+                                    restartGame()
+                                } label: {
+                                    Text("Try Again")
+                                        .font(.headline)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 32)
+                                        .padding(.vertical, 12)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(Color(Constants.catridgeColor))
+                                                .shadow(color: .black, radius: 0, x: 4, y: 4)
+                                        )
                                 }
                             }
                         }
@@ -107,6 +126,16 @@ struct ContentView: View {
                 position = guestStart
             }
         }
+        .onChange(of: multipeerManager.receivedRestartGrid) { grid in
+            if let grid = grid {
+                // Guest receives new maze from host restart
+                maze = MazeGenerator2(grid: grid)
+                isFinished = false
+                multipeerManager.opponentWon = false
+                position = guestStart
+                multipeerManager.receivedRestartGrid = nil
+            }
+        }
         .onChange(of: multipeerManager.gameReady) { ready in
             if ready {
                 if multipeerManager.isHost {
@@ -127,6 +156,24 @@ struct ContentView: View {
             Text("\(multipeerManager.pendingInvitePeerName ?? "Someone") wants to play with you")
         }
     }
+
+    private func restartGame() {
+        // Generate a brand-new maze
+        let newMaze = MazeGenerator2(rows: Constants.rows, cols: Constants.cols)
+        maze = newMaze
+        isFinished = false
+        multipeerManager.opponentWon = false
+        // Reset positions
+        if multipeerManager.isHost {
+            position = hostStart
+            // Send the new maze to the guest as a restart signal
+            multipeerManager.sendRestart(newMaze.grid)
+        } else {
+            position = guestStart
+            // Guest also tells host to restart (host will regenerate their own maze)
+            multipeerManager.sendRestart(newMaze.grid)
+        }
+    }
     
     private var connectionToolbar: some View {
         HStack {
@@ -135,9 +182,9 @@ struct ContentView: View {
                     multipeerManager.disconnect()
                 } label: {
                     Rectangle()
-                        .fill(Color.black)
-                        .opacity(0.2)
-                        .frame(width: 210, height: 25)
+                        .fill(Color(Constants.catridgeColor))
+                        .frame(width: 200, height: 25)
+                        .shadow(color: .black, radius: 0, x: 5, y: 5)
                 }
                 .padding(.leading, 25)
             } else {
@@ -146,13 +193,11 @@ struct ContentView: View {
                     showPeerSheet = true
                 } label: {
                     Rectangle()
-                        .fill(Color.black)
-                        .opacity(0.2)
+                        .fill(Color(Constants.catridgeColor))
                         .frame(width: 200, height: 25)
+                        .shadow(color: .black, radius: 0, x: 5, y: 5)
                 }
                 .padding(.leading, 25)
-//                .padding(.bottom, 10)
-//                .background(Color.red)
             }
             
             Spacer()

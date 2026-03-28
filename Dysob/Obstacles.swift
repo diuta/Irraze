@@ -50,5 +50,6 @@ struct Obstacles: View {
         return Image(systemName: "tree")
             .frame(width: size, height: size)
             .offset(x: xOffset, y: yOffset)
+            .foregroundStyle(Color.black)
     }
 }

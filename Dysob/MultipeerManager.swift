@@ -17,6 +17,7 @@ class MultipeerManager: NSObject, ObservableObject {
     @Published var remotePosition: CGPoint? = nil
     @Published var receivedMazeGrid: [[Bool]]? = nil
     @Published var opponentWon: Bool = false
+    @Published var receivedRestartGrid: [[Bool]]? = nil
 
     // Discovery
     @Published var discoveredPeers: [MCPeerID] = []
@@ -139,6 +140,12 @@ class MultipeerManager: NSObject, ObservableObject {
         }
     }
 
+    func sendRestart(_ grid: [[Bool]]) {
+        guard isConnected else { return }
+        let message = PlayerMessage.restart(grid: grid)
+        send(message)
+    }
+
     private func send(_ message: PlayerMessage) {
         guard let data = try? JSONEncoder().encode(message),
               !session.connectedPeers.isEmpty else { return }
@@ -182,6 +189,9 @@ extension MultipeerManager: MCSessionDelegate {
                 self.gameReady = true
             case .gameOver:
                 self.opponentWon = true
+            case .restart(let grid):
+                self.receivedRestartGrid = grid
+                self.opponentWon = false
             }
         }
     }

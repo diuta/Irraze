@@ -13,39 +13,78 @@ struct UserInput: View {
     
     private var movementButtons: some View {
         HStack(spacing: 125) {
+//            HStack(spacing: 0) {
+//                MovementButtons(label: "", width: 50, height: 50) { move(x: -Constants.step, y: 0) }
+//                VStack(spacing: 0) {
+//                    MovementButtons(label: "", width: 50, height: 50) { move(x: 0, y: -Constants.step) }
+//                    Rectangle()
+//                        .fill(Color(Constants.moveButtonColor))
+//                        .frame(width: 50, height: 50)
+//                    MovementButtons(label: "", width: 50, height: 50) { move(x: 0, y: Constants.step) }
+//                }
+//                MovementButtons(label: "", width: 50, height: 50) { move(x: Constants.step, y: 0) }
+//            }
+            
             HStack(spacing: 0) {
-                MovementButtons(label: "", width: 50, height: 50) { move(x: -Constants.step, y: 0) }
-                VStack(spacing: 0) {
-                    MovementButtons(label: "", width: 50, height: 50) { move(x: 0, y: -Constants.step) }
+                Button {
+                    move(x: -Constants.step, y: 0)
+                } label: {
                     Rectangle()
+                        .fill(Color(Constants.moveButtonColor))
                         .frame(width: 50, height: 50)
-                        .background(Color.black)
-                        .opacity(0.025)
-                    MovementButtons(label: "", width: 50, height: 50) { move(x: 0, y: Constants.step) }
                 }
-                MovementButtons(label: "", width: 50, height: 50) { move(x: Constants.step, y: 0) }
+                VStack(spacing: 0) {
+                    Button {
+                        move(x: 0, y: -Constants.step)
+                    } label: {
+                        Rectangle()
+                            .fill(Color(Constants.moveButtonColor))
+                            .frame(width: 50, height: 50)
+                    }
+                    
+                    Rectangle()
+                        .fill(Color(Constants.moveButtonColor))
+                        .frame(width: 50, height: 50)
+                    
+                    Button {
+                        move(x: 0, y: Constants.step)
+                    } label: {
+                        Rectangle()
+                            .fill(Color(Constants.moveButtonColor))
+                            .frame(width: 50, height: 50)
+                    }
+                }
+                Button {
+                    move(x: Constants.step, y: 0)
+                } label: {
+                    Rectangle()
+                        .fill(Color(Constants.moveButtonColor))
+                        .frame(width: 50, height: 50)
+                }
             }
+            .compositingGroup()
+            .shadow(color: .black, radius: 0, x: 5, y: 5)
                         
             VStack{
                 Button{
                     
                 } label: {
                     Circle()
-                        .fill(Color.black)
-                        .opacity(0.1)
+                        .fill(Color.red)
                         .frame(width: 70, height: 70)
                 }
                 .offset(x: -65)
+                .shadow(color: .black, radius: 0, x: 5, y: 5)
 
                 Button{
                     
                 } label: {
                     Circle()
-                        .fill(Color.black)
-                        .opacity(0.1)
+                        .fill(Color.red)
                         .frame(width: 70, height: 70)
                 }
                 .offset(x: 10)
+                .shadow(color: .black, radius: 0, x: 5, y: 5)
 
             }
         }
