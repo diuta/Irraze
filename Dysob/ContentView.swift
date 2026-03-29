@@ -34,7 +34,7 @@ struct ContentView: View {
                     ZStack {
                         if multipeerManager.gameReady {
                             Map(maze: maze)
-                            Obstacles(maze: maze, position: position)
+                            Obstacles(maze: maze, position: position, isFogged: multipeerManager.isFogged)
                             Player(maze: maze, position: position, color: localColor)
                             
                             if let remotePos = multipeerManager.remotePosition {
@@ -60,7 +60,7 @@ struct ContentView: View {
                             .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 0)
                         }
                         
-                        if isFinished || multipeerManager.opponentWon {
+                        if (isFinished || multipeerManager.opponentWon) && multipeerManager.gameReady {
                             VStack(spacing: 16){
                                 if isFinished {
                                     Text("YOU WIN!")
@@ -128,12 +128,19 @@ struct ContentView: View {
         }
         .onChange(of: multipeerManager.receivedRestartGrid) { grid in
             if let grid = grid {
-                // Guest receives new maze from host restart
                 maze = MazeGenerator2(grid: grid)
                 isFinished = false
                 multipeerManager.opponentWon = false
-                position = guestStart
+                position = multipeerManager.receivedMazeGrid != nil ? guestStart : hostStart
+                multipeerManager.sendPosition(position)
                 multipeerManager.receivedRestartGrid = nil
+            }
+        }
+        .onChange(of: multipeerManager.swapPosition) { newPos in
+            if let newPos = newPos {
+                position = newPos
+                multipeerManager.sendPosition(position)
+                multipeerManager.swapPosition = nil
             }
         }
         .onChange(of: multipeerManager.gameReady) { ready in
@@ -143,6 +150,7 @@ struct ContentView: View {
                 } else {
                     position = guestStart
                 }
+                multipeerManager.sendPosition(position)
             }
         }
         .sheet(isPresented: $showPeerSheet) {
@@ -158,21 +166,18 @@ struct ContentView: View {
     }
 
     private func restartGame() {
-        // Generate a brand-new maze
         let newMaze = MazeGenerator2(rows: Constants.rows, cols: Constants.cols)
         maze = newMaze
         isFinished = false
         multipeerManager.opponentWon = false
-        // Reset positions
         if multipeerManager.isHost {
             position = hostStart
-            // Send the new maze to the guest as a restart signal
             multipeerManager.sendRestart(newMaze.grid)
         } else {
             position = guestStart
-            // Guest also tells host to restart (host will regenerate their own maze)
             multipeerManager.sendRestart(newMaze.grid)
         }
+        multipeerManager.sendPosition(position)
     }
     
     private var connectionToolbar: some View {
@@ -180,6 +185,10 @@ struct ContentView: View {
             if multipeerManager.isConnected {
                 Button {
                     multipeerManager.disconnect()
+                    maze = MazeGenerator2(rows: Constants.rows, cols: Constants.cols)
+                    position = hostStart
+                    isFinished = false
+                    multipeerManager.opponentWon = false
                 } label: {
                     Rectangle()
                         .fill(Color(Constants.catridgeColor))
@@ -207,6 +216,7 @@ struct ContentView: View {
                     .fill(multipeerManager.isConnected ? Color.green : Color.orange)
                     .frame(width: 30, height: 30)
                     .padding(.trailing, 50)
+                    .shadow(color: .black, radius: 0, x: 5, y: 5)
             }
         }
     }

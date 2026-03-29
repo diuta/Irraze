@@ -18,6 +18,8 @@ class MultipeerManager: NSObject, ObservableObject {
     @Published var receivedMazeGrid: [[Bool]]? = nil
     @Published var opponentWon: Bool = false
     @Published var receivedRestartGrid: [[Bool]]? = nil
+    @Published var isFogged: Bool = false
+    @Published var swapPosition: CGPoint? = nil
 
     // Discovery
     @Published var discoveredPeers: [MCPeerID] = []
@@ -105,6 +107,8 @@ class MultipeerManager: NSObject, ObservableObject {
         gameReady = false
         remotePosition = nil
         receivedMazeGrid = nil
+        isFogged = false
+        swapPosition = nil
         connectedPeerName = nil
         statusText = "Not Connected"
         discoveredPeers = []
@@ -144,6 +148,16 @@ class MultipeerManager: NSObject, ObservableObject {
         guard isConnected else { return }
         let message = PlayerMessage.restart(grid: grid)
         send(message)
+    }
+
+    func sendFogOfWar() {
+        guard isConnected else { return }
+        send(.fogOfWar)
+    }
+
+    func sendSwap(myPosition: CGPoint) {
+        guard isConnected else { return }
+        send(.swap(x: Double(myPosition.x), y: Double(myPosition.y)))
     }
 
     private func send(_ message: PlayerMessage) {
@@ -192,6 +206,13 @@ extension MultipeerManager: MCSessionDelegate {
             case .restart(let grid):
                 self.receivedRestartGrid = grid
                 self.opponentWon = false
+            case .fogOfWar:
+                self.isFogged = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                    self.isFogged = false
+                }
+            case .swap(let x, let y):
+                self.swapPosition = CGPoint(x: x, y: y)
             }
         }
     }

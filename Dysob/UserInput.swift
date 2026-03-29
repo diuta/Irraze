@@ -6,6 +6,8 @@ struct UserInput: View {
     @Binding var position: CGPoint
     @Binding var isFinished: Bool
     @ObservedObject var multipeerManager: MultipeerManager
+    @State private var fogCooldown = false
+    @State private var swapCooldown = false
     
     var body: some View {
         movementButtons
@@ -63,26 +65,28 @@ struct UserInput: View {
                 }
             }
             .compositingGroup()
-            .shadow(color: .black, radius: 0, x: 5, y: 5)
+            .shadow(color: .black, radius: 0, x: 7, y: 7)
                         
             VStack{
                 Button{
-                    
+                    useFogOfWar()
                 } label: {
                     Circle()
-                        .fill(Color.red)
+                        .fill(fogCooldown ? Color.gray : Color.red)
                         .frame(width: 70, height: 70)
                 }
+                .disabled(fogCooldown)
                 .offset(x: -65)
                 .shadow(color: .black, radius: 0, x: 5, y: 5)
 
                 Button{
-                    
+                    useSwap()
                 } label: {
                     Circle()
-                        .fill(Color.red)
+                        .fill(swapCooldown ? Color.gray : Color.red)
                         .frame(width: 70, height: 70)
                 }
+                .disabled(swapCooldown)
                 .offset(x: 10)
                 .shadow(color: .black, radius: 0, x: 5, y: 5)
 
@@ -115,6 +119,37 @@ struct UserInput: View {
         
         if isFinished {
             multipeerManager.sendGameOver()
+        }
+    }
+
+    func useFogOfWar() {
+        guard multipeerManager.gameReady,
+              !isFinished,
+              !multipeerManager.opponentWon,
+              !fogCooldown else { return }
+
+        multipeerManager.sendFogOfWar()
+        fogCooldown = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+            fogCooldown = false
+        }
+    }
+
+    func useSwap() {
+        guard multipeerManager.gameReady,
+              !isFinished,
+              !multipeerManager.opponentWon,
+              !swapCooldown,
+              let remotePos = multipeerManager.remotePosition else { return }
+
+        let myPos = position
+        multipeerManager.sendSwap(myPosition: myPos)
+        position = remotePos
+        multipeerManager.sendPosition(position)
+
+        swapCooldown = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 15) {
+            swapCooldown = false
         }
     }
 }

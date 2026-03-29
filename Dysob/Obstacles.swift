@@ -3,6 +3,7 @@ import SwiftUI
 struct Obstacles: View {
     let maze: MazeGenerator2
     let position: CGPoint
+    var isFogged: Bool = false
     
     private let step = Constants.step
     private let maxY = Constants.maxY
@@ -23,20 +24,31 @@ struct Obstacles: View {
         return (maxRowView + cameraShift) >= maze.rows ? maze.rows : (maxRowView + cameraShift)
     }
 
+    private var playerRow: Int { pixelToRow(pixel: position.y) }
+    private var playerCol: Int { pixelToCol(pixel: position.x) }
+    private let fogRadius = 2
+
+    private func isVisibleInFog(row: Int, col: Int) -> Bool {
+        guard isFogged else { return true }
+        return abs(row - playerRow) + abs(col - playerCol) <= fogRadius
+    }
+
     var body: some View {
         ZStack {
             ForEach(cameraShift..<shiftLimit, id: \.self) { row in
                 ForEach(0..<maze.cols, id: \.self) { col in
-                    if maze.isWall(row: row, col: col) {
-                        treeIcon(row: row, col: col)
-                    }
-                    if maze.isFinish(row: row, col: col) {
-                        let xOffset = colToPixel(col: col)
-                        let yOffset = rowToPixel(row: row-cameraShift)
-                        Rectangle()
-                            .fill(Color.green)
-                            .frame(width: size, height: size)
-                            .offset(x: xOffset, y: yOffset)
+                    if isVisibleInFog(row: row, col: col) {
+                        if maze.isWall(row: row, col: col) {
+                            treeIcon(row: row, col: col)
+                        }
+                        if maze.isFinish(row: row, col: col) {
+                            let xOffset = colToPixel(col: col)
+                            let yOffset = rowToPixel(row: row-cameraShift)
+                            Rectangle()
+                                .fill(Color.green)
+                                .frame(width: size, height: size)
+                                .offset(x: xOffset, y: yOffset)
+                        }
                     }
                 }
             }
@@ -50,6 +62,5 @@ struct Obstacles: View {
         return Image(systemName: "tree")
             .frame(width: size, height: size)
             .offset(x: xOffset, y: yOffset)
-            .foregroundStyle(Color.black)
     }
 }
