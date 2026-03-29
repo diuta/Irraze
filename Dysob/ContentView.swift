@@ -5,7 +5,6 @@ struct ContentView: View {
     @StateObject private var multipeerManager = MultipeerManager()
     @State private var maze = MazeGenerator2(rows: Constants.rows, cols: Constants.cols)
     @State private var position = CGPoint.zero
-    @State private var mazeReady = false
     @State private var showPeerSheet = false
     @State private var isFinished = false
 
@@ -114,7 +113,6 @@ struct ContentView: View {
         }
         .onAppear {
             position = hostStart
-            mazeReady = true
         }
         .onChange(of: multipeerManager.isConnected) { connected in
             if connected && multipeerManager.isHost {
@@ -123,12 +121,13 @@ struct ContentView: View {
                 multipeerManager.swapPickups = swap
                 multipeerManager.sendMaze(maze.grid)
                 multipeerManager.sendPickups(fog: fog, swap: swap)
+            } else if !connected {
+                isFinished = false
             }
         }
         .onChange(of: multipeerManager.receivedMazeGrid) { grid in
             if let grid = grid {
                 maze = MazeGenerator2(grid: grid)
-                position = guestStart
             }
         }
         .onChange(of: multipeerManager.receivedRestartGrid) { grid in
@@ -138,9 +137,16 @@ struct ContentView: View {
                 multipeerManager.opponentWon = false
                 multipeerManager.hasFog = false
                 multipeerManager.hasSwap = false
-                position = multipeerManager.receivedMazeGrid != nil ? guestStart : hostStart
+                position = !multipeerManager.isHost ? guestStart : hostStart
                 multipeerManager.sendPosition(position)
                 multipeerManager.receivedRestartGrid = nil
+            }
+        }
+        .onChange(of: multipeerManager.receivedRestartRequest) { requested in
+            guard requested else { return }
+            multipeerManager.receivedRestartRequest = false
+            if multipeerManager.isHost {
+                restartGame()
             }
         }
         .onChange(of: position) { _ in
@@ -183,23 +189,29 @@ struct ContentView: View {
     }
 
     private func restartGame() {
-        let newMaze = MazeGenerator2(rows: Constants.rows, cols: Constants.cols)
-        maze = newMaze
-        isFinished = false
-        multipeerManager.opponentWon = false
-        multipeerManager.hasFog = false
-        multipeerManager.hasSwap = false
-        let (fog, swap) = generatePickups(from: newMaze, count: 4)
-        multipeerManager.fogPickups = fog
-        multipeerManager.swapPickups = swap
         if multipeerManager.isHost {
+            let newMaze = MazeGenerator2(rows: Constants.rows, cols: Constants.cols)
+            maze = newMaze
+            isFinished = false
+            multipeerManager.opponentWon = false
+            multipeerManager.hasFog = false
+            multipeerManager.hasSwap = false
+            let (fog, swap) = generatePickups(from: newMaze, count: 4)
+            multipeerManager.fogPickups = fog
+            multipeerManager.swapPickups = swap
             position = hostStart
+            multipeerManager.sendRestart(newMaze.grid)
+            multipeerManager.sendPickups(fog: fog, swap: swap)
+            multipeerManager.sendPosition(position)
         } else {
+            isFinished = false
+            multipeerManager.opponentWon = false
+            multipeerManager.hasFog = false
+            multipeerManager.hasSwap = false
             position = guestStart
+            multipeerManager.sendPosition(position)
+            multipeerManager.sendRestartRequest()
         }
-        multipeerManager.sendRestart(newMaze.grid)
-        multipeerManager.sendPickups(fog: fog, swap: swap)
-        multipeerManager.sendPosition(position)
     }
 
     private func generatePickups(from maze: MazeGenerator2, count: Int) -> ([SkillPickup], [SkillPickup]) {

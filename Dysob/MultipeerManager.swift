@@ -9,6 +9,8 @@ class MultipeerManager: NSObject, ObservableObject {
     private var session: MCSession
     private var advertiser: MCNearbyServiceAdvertiser
     private var browser: MCNearbyServiceBrowser
+    private let encoder = JSONEncoder()
+    private let decoder = JSONDecoder()
 
     @Published var isConnected = false
     @Published var isHost = true
@@ -24,6 +26,7 @@ class MultipeerManager: NSObject, ObservableObject {
     @Published var swapPickups: [SkillPickup] = []
     @Published var hasFog: Bool = false
     @Published var hasSwap: Bool = false
+    @Published var receivedRestartRequest: Bool = false
 
     // Discovery
     @Published var discoveredPeers: [MCPeerID] = []
@@ -121,7 +124,8 @@ class MultipeerManager: NSObject, ObservableObject {
         connectedPeerName = nil
         statusText = "Not Connected"
         discoveredPeers = []
-        
+        opponentWon = false
+        receivedRestartRequest = false
 
         // Re-advertise so others can find us again
         advertiser.startAdvertisingPeer()
@@ -147,11 +151,12 @@ class MultipeerManager: NSObject, ObservableObject {
     
     func sendGameOver() {
         guard isConnected else { return }
-        let message = PlayerMessage.gameOver
-        send(message)
-        DispatchQueue.main.async {
-            self.gameReady = true
-        }
+        send(.gameOver)
+    }
+
+    func sendRestartRequest() {
+        guard isConnected else { return }
+        send(.restartRequest)
     }
 
     func sendRestart(_ grid: [[Bool]]) {
@@ -181,7 +186,7 @@ class MultipeerManager: NSObject, ObservableObject {
     }
 
     private func send(_ message: PlayerMessage) {
-        guard let data = try? JSONEncoder().encode(message),
+        guard let data = try? encoder.encode(message),
               !session.connectedPeers.isEmpty else { return }
         try? session.send(data, toPeers: session.connectedPeers, with: .reliable)
     }
@@ -215,7 +220,7 @@ extension MultipeerManager: MCSessionDelegate {
     }
 
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
-        guard let message = try? JSONDecoder().decode(PlayerMessage.self, from: data) else { return }
+        guard let message = try? decoder.decode(PlayerMessage.self, from: data) else { return }
         DispatchQueue.main.async {
             switch message {
             case .position(let x, let y):
@@ -244,6 +249,8 @@ extension MultipeerManager: MCSessionDelegate {
                 } else {
                     self.swapPickups.removeAll { $0.row == row && $0.col == col }
                 }
+            case .restartRequest:
+                self.receivedRestartRequest = true
             }
         }
     }

@@ -15,4 +15,5 @@ enum PlayerMessage: Codable {
     case swap(x: Double, y: Double)
     case pickups(fog: [SkillPickup], swap: [SkillPickup])
     case pickupCollected(isFog: Bool, row: Int, col: Int)
+    case restartRequest
 }
