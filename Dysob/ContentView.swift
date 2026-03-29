@@ -34,7 +34,7 @@ struct ContentView: View {
                     ZStack {
                         if multipeerManager.gameReady {
                             Map(maze: maze)
-                            Obstacles(maze: maze, position: position, isFogged: multipeerManager.isFogged)
+                            Obstacles(maze: maze, position: position, isFogged: multipeerManager.isFogged, fogPickups: multipeerManager.fogPickups, swapPickups: multipeerManager.swapPickups)
                             Player(maze: maze, position: position, color: localColor)
                             
                             if let remotePos = multipeerManager.remotePosition {
@@ -77,6 +77,7 @@ struct ContentView: View {
                                 }
                                 
                                 Button {
+                                    haptic()
                                     restartGame()
                                 } label: {
                                     Text("Try Again")
@@ -117,7 +118,11 @@ struct ContentView: View {
         }
         .onChange(of: multipeerManager.isConnected) { connected in
             if connected && multipeerManager.isHost {
+                let (fog, swap) = generatePickups(from: maze, count: 4)
+                multipeerManager.fogPickups = fog
+                multipeerManager.swapPickups = swap
                 multipeerManager.sendMaze(maze.grid)
+                multipeerManager.sendPickups(fog: fog, swap: swap)
             }
         }
         .onChange(of: multipeerManager.receivedMazeGrid) { grid in
@@ -131,10 +136,15 @@ struct ContentView: View {
                 maze = MazeGenerator2(grid: grid)
                 isFinished = false
                 multipeerManager.opponentWon = false
+                multipeerManager.hasFog = false
+                multipeerManager.hasSwap = false
                 position = multipeerManager.receivedMazeGrid != nil ? guestStart : hostStart
                 multipeerManager.sendPosition(position)
                 multipeerManager.receivedRestartGrid = nil
             }
+        }
+        .onChange(of: position) { _ in
+            checkPickupCollection()
         }
         .onChange(of: multipeerManager.swapPosition) { newPos in
             if let newPos = newPos {
@@ -151,7 +161,14 @@ struct ContentView: View {
                     position = guestStart
                 }
                 multipeerManager.sendPosition(position)
+                SoundManager.shared.play("gamestart")
             }
+        }
+        .onChange(of: isFinished) { finished in
+            if finished { SoundManager.shared.play("winner") }
+        }
+        .onChange(of: multipeerManager.opponentWon) { lost in
+            if lost { SoundManager.shared.play("gameover") }
         }
         .sheet(isPresented: $showPeerSheet) {
             peerListSheet
@@ -170,20 +187,62 @@ struct ContentView: View {
         maze = newMaze
         isFinished = false
         multipeerManager.opponentWon = false
+        multipeerManager.hasFog = false
+        multipeerManager.hasSwap = false
+        let (fog, swap) = generatePickups(from: newMaze, count: 4)
+        multipeerManager.fogPickups = fog
+        multipeerManager.swapPickups = swap
         if multipeerManager.isHost {
             position = hostStart
-            multipeerManager.sendRestart(newMaze.grid)
         } else {
             position = guestStart
-            multipeerManager.sendRestart(newMaze.grid)
         }
+        multipeerManager.sendRestart(newMaze.grid)
+        multipeerManager.sendPickups(fog: fog, swap: swap)
         multipeerManager.sendPosition(position)
+    }
+
+    private func generatePickups(from maze: MazeGenerator2, count: Int) -> ([SkillPickup], [SkillPickup]) {
+        var openTiles: [SkillPickup] = []
+        for row in 1..<maze.rows-1 {
+            for col in 1..<maze.cols-1 {
+                if !maze.isWall(row: row, col: col) && !maze.isFinish(row: row, col: col)
+                    && !(row == 1 && col == 1) && !(row == 1 && col == maze.cols-2) {
+                    openTiles.append(SkillPickup(row: row, col: col))
+                }
+            }
+        }
+        openTiles.shuffle()
+        let fog = Array(openTiles.prefix(count))
+        let swap = Array(openTiles.dropFirst(count).prefix(count))
+        return (fog, swap)
+    }
+
+    private func checkPickupCollection() {
+        guard multipeerManager.gameReady else { return }
+        let row = pixelToRow(pixel: position.y)
+        let col = pixelToCol(pixel: position.x)
+
+        if !multipeerManager.hasFog,
+           multipeerManager.fogPickups.contains(where: { $0.row == row && $0.col == col }) {
+            multipeerManager.hasFog = true
+            multipeerManager.fogPickups.removeAll { $0.row == row && $0.col == col }
+            multipeerManager.sendPickupCollected(isFog: true, row: row, col: col)
+        }
+
+        if !multipeerManager.hasSwap,
+           multipeerManager.swapPickups.contains(where: { $0.row == row && $0.col == col }) {
+            multipeerManager.hasSwap = true
+            multipeerManager.swapPickups.removeAll { $0.row == row && $0.col == col }
+            multipeerManager.sendPickupCollected(isFog: false, row: row, col: col)
+        }
     }
     
     private var connectionToolbar: some View {
         HStack {
             if multipeerManager.isConnected {
                 Button {
+                    haptic()
                     multipeerManager.disconnect()
                     maze = MazeGenerator2(rows: Constants.rows, cols: Constants.cols)
                     position = hostStart
@@ -198,6 +257,7 @@ struct ContentView: View {
                 .padding(.leading, 25)
             } else {
                 Button {
+                    haptic()
                     multipeerManager.startBrowsing()
                     showPeerSheet = true
                 } label: {

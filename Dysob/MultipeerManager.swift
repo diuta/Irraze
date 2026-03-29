@@ -20,6 +20,10 @@ class MultipeerManager: NSObject, ObservableObject {
     @Published var receivedRestartGrid: [[Bool]]? = nil
     @Published var isFogged: Bool = false
     @Published var swapPosition: CGPoint? = nil
+    @Published var fogPickups: [SkillPickup] = []
+    @Published var swapPickups: [SkillPickup] = []
+    @Published var hasFog: Bool = false
+    @Published var hasSwap: Bool = false
 
     // Discovery
     @Published var discoveredPeers: [MCPeerID] = []
@@ -71,12 +75,13 @@ class MultipeerManager: NSObject, ObservableObject {
     // MARK: - Invite
 
     func invitePeer(_ peerID: MCPeerID) {
-        // The device that sends the invite is the host
         isHost = true
         roleDecided = true
         statusText = "Connecting..."
         browser.invitePeer(peerID, to: session, withContext: nil, timeout: 30)
-        stopBrowsing()
+        // Do NOT stop browsing here — stopping the browser immediately after inviting
+        // cancels the underlying transport before the invite is delivered.
+        // Browsing is stopped in the session delegate once connected.
     }
 
     func acceptInvitation() {
@@ -109,9 +114,14 @@ class MultipeerManager: NSObject, ObservableObject {
         receivedMazeGrid = nil
         isFogged = false
         swapPosition = nil
+        fogPickups = []
+        swapPickups = []
+        hasFog = false
+        hasSwap = false
         connectedPeerName = nil
         statusText = "Not Connected"
         discoveredPeers = []
+        
 
         // Re-advertise so others can find us again
         advertiser.startAdvertisingPeer()
@@ -160,6 +170,16 @@ class MultipeerManager: NSObject, ObservableObject {
         send(.swap(x: Double(myPosition.x), y: Double(myPosition.y)))
     }
 
+    func sendPickups(fog: [SkillPickup], swap: [SkillPickup]) {
+        guard isConnected else { return }
+        send(.pickups(fog: fog, swap: swap))
+    }
+
+    func sendPickupCollected(isFog: Bool, row: Int, col: Int) {
+        guard isConnected else { return }
+        send(.pickupCollected(isFog: isFog, row: row, col: col))
+    }
+
     private func send(_ message: PlayerMessage) {
         guard let data = try? JSONEncoder().encode(message),
               !session.connectedPeers.isEmpty else { return }
@@ -178,7 +198,9 @@ extension MultipeerManager: MCSessionDelegate {
                 self.connectedPeerName = peerID.displayName
                 self.statusText = "Connected to \(peerID.displayName)"
                 self.advertiser.stopAdvertisingPeer()
-                self.stopBrowsing()
+                self.browser.stopBrowsingForPeers()
+                self.isBrowsing = false
+                self.discoveredPeers = []
             case .notConnected:
                 if self.isConnected {
                     // Peer disconnected
@@ -213,6 +235,15 @@ extension MultipeerManager: MCSessionDelegate {
                 }
             case .swap(let x, let y):
                 self.swapPosition = CGPoint(x: x, y: y)
+            case .pickups(let fog, let swap):
+                self.fogPickups = fog
+                self.swapPickups = swap
+            case .pickupCollected(let isFog, let row, let col):
+                if isFog {
+                    self.fogPickups.removeAll { $0.row == row && $0.col == col }
+                } else {
+                    self.swapPickups.removeAll { $0.row == row && $0.col == col }
+                }
             }
         }
     }

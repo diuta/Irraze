@@ -6,8 +6,7 @@ struct UserInput: View {
     @Binding var position: CGPoint
     @Binding var isFinished: Bool
     @ObservedObject var multipeerManager: MultipeerManager
-    @State private var fogCooldown = false
-    @State private var swapCooldown = false
+
     
     var body: some View {
         movementButtons
@@ -29,6 +28,7 @@ struct UserInput: View {
             
             HStack(spacing: 0) {
                 Button {
+                    haptic()
                     move(x: -Constants.step, y: 0)
                 } label: {
                     Rectangle()
@@ -37,6 +37,7 @@ struct UserInput: View {
                 }
                 VStack(spacing: 0) {
                     Button {
+                        haptic()
                         move(x: 0, y: -Constants.step)
                     } label: {
                         Rectangle()
@@ -49,6 +50,7 @@ struct UserInput: View {
                         .frame(width: 50, height: 50)
                     
                     Button {
+                        haptic()
                         move(x: 0, y: Constants.step)
                     } label: {
                         Rectangle()
@@ -57,6 +59,7 @@ struct UserInput: View {
                     }
                 }
                 Button {
+                    haptic()
                     move(x: Constants.step, y: 0)
                 } label: {
                     Rectangle()
@@ -69,24 +72,26 @@ struct UserInput: View {
                         
             VStack{
                 Button{
+                    haptic(.medium)
                     useFogOfWar()
                 } label: {
                     Circle()
-                        .fill(fogCooldown ? Color.gray : Color.red)
+                        .fill(multipeerManager.hasFog ? Color.brown : Color.gray)
                         .frame(width: 70, height: 70)
                 }
-                .disabled(fogCooldown)
+                .disabled(!multipeerManager.hasFog)
                 .offset(x: -65)
                 .shadow(color: .black, radius: 0, x: 5, y: 5)
 
                 Button{
+                    haptic(.medium)
                     useSwap()
                 } label: {
                     Circle()
-                        .fill(swapCooldown ? Color.gray : Color.red)
+                        .fill(multipeerManager.hasSwap ? Color.indigo : Color.gray)
                         .frame(width: 70, height: 70)
                 }
-                .disabled(swapCooldown)
+                .disabled(!multipeerManager.hasSwap)
                 .offset(x: 10)
                 .shadow(color: .black, radius: 0, x: 5, y: 5)
 
@@ -114,6 +119,7 @@ struct UserInput: View {
         position.x += x
         position.y += y
         multipeerManager.sendPosition(position)
+        SoundManager.shared.play("move")
 
         isFinished = maze.isFinish(row: newRow, col: newCol)
         
@@ -126,31 +132,26 @@ struct UserInput: View {
         guard multipeerManager.gameReady,
               !isFinished,
               !multipeerManager.opponentWon,
-              !fogCooldown else { return }
+              multipeerManager.hasFog else { return }
 
         multipeerManager.sendFogOfWar()
-        fogCooldown = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-            fogCooldown = false
-        }
+        multipeerManager.hasFog = false
+        SoundManager.shared.play("skill")
     }
 
     func useSwap() {
         guard multipeerManager.gameReady,
               !isFinished,
               !multipeerManager.opponentWon,
-              !swapCooldown,
+              multipeerManager.hasSwap,
               let remotePos = multipeerManager.remotePosition else { return }
 
         let myPos = position
         multipeerManager.sendSwap(myPosition: myPos)
         position = remotePos
         multipeerManager.sendPosition(position)
-
-        swapCooldown = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 15) {
-            swapCooldown = false
-        }
+        multipeerManager.hasSwap = false
+        SoundManager.shared.play("skill")
     }
 }
 

@@ -4,6 +4,8 @@ struct Obstacles: View {
     let maze: MazeGenerator2
     let position: CGPoint
     var isFogged: Bool = false
+    var fogPickups: [SkillPickup] = []
+    var swapPickups: [SkillPickup] = []
     
     private let step = Constants.step
     private let maxY = Constants.maxY
@@ -52,6 +54,24 @@ struct Obstacles: View {
                     }
                 }
             }
+
+            ForEach(fogPickups.filter { $0.row >= cameraShift && $0.row < shiftLimit }) { pickup in
+                if isVisibleInFog(row: pickup.row, col: pickup.col) {
+                    Circle()
+                        .fill(Color.brown)
+                        .frame(width: 12, height: 12)
+                        .offset(x: colToPixel(col: pickup.col), y: rowToPixel(row: pickup.row - cameraShift))
+                }
+            }
+
+            ForEach(swapPickups.filter { $0.row >= cameraShift && $0.row < shiftLimit }) { pickup in
+                if isVisibleInFog(row: pickup.row, col: pickup.col) {
+                    Circle()
+                        .fill(Color.indigo)
+                        .frame(width: 12, height: 12)
+                        .offset(x: colToPixel(col: pickup.col), y: rowToPixel(row: pickup.row - cameraShift))
+                }
+            }
         }
     }
 
@@ -62,5 +82,6 @@ struct Obstacles: View {
         return Image(systemName: "tree")
             .frame(width: size, height: size)
             .offset(x: xOffset, y: yOffset)
+            .foregroundColor(.black)
     }
 }
