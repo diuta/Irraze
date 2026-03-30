@@ -7,26 +7,26 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		DB76F4A72F6BC7BC007F584B /* Dysob.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dysob.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DB76F4A72F6BC7BC007F584B /* Irraze.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Irraze.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		DB76F4CC2F6BC7BD007F584B /* Exceptions for "Dysob" folder in "Dysob" target */ = {
+		DB76F4CC2F6BC7BD007F584B /* Exceptions for "Irraze" folder in "Irraze" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = DB76F4A62F6BC7BC007F584B /* Dysob */;
+			target = DB76F4A62F6BC7BC007F584B /* Irraze */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		DB76F4A92F6BC7BC007F584B /* Dysob */ = {
+		DB76F4A92F6BC7BC007F584B /* Irraze */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				DB76F4CC2F6BC7BD007F584B /* Exceptions for "Dysob" folder in "Dysob" target */,
+				DB76F4CC2F6BC7BD007F584B /* Exceptions for "Irraze" folder in "Irraze" target */,
 			);
-			path = Dysob;
+			path = Irraze;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -45,7 +45,7 @@
 		DB76F49E2F6BC7BC007F584B = {
 			isa = PBXGroup;
 			children = (
-				DB76F4A92F6BC7BC007F584B /* Dysob */,
+				DB76F4A92F6BC7BC007F584B /* Irraze */,
 				DB76F4A82F6BC7BC007F584B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -53,7 +53,7 @@
 		DB76F4A82F6BC7BC007F584B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				DB76F4A72F6BC7BC007F584B /* Dysob.app */,
+				DB76F4A72F6BC7BC007F584B /* Irraze.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -61,9 +61,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		DB76F4A62F6BC7BC007F584B /* Dysob */ = {
+		DB76F4A62F6BC7BC007F584B /* Irraze */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = DB76F4B22F6BC7BD007F584B /* Build configuration list for PBXNativeTarget "Dysob" */;
+			buildConfigurationList = DB76F4B22F6BC7BD007F584B /* Build configuration list for PBXNativeTarget "Irraze" */;
 			buildPhases = (
 				DB76F4A32F6BC7BC007F584B /* Sources */,
 				DB76F4A42F6BC7BC007F584B /* Frameworks */,
@@ -74,13 +74,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				DB76F4A92F6BC7BC007F584B /* Dysob */,
+				DB76F4A92F6BC7BC007F584B /* Irraze */,
 			);
-			name = Dysob;
+			name = Irraze;
 			packageProductDependencies = (
 			);
 			productName = maze;
-			productReference = DB76F4A72F6BC7BC007F584B /* Dysob.app */;
+			productReference = DB76F4A72F6BC7BC007F584B /* Irraze.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -98,7 +98,7 @@
 					};
 				};
 			};
-			buildConfigurationList = DB76F4A22F6BC7BC007F584B /* Build configuration list for PBXProject "Dysob" */;
+			buildConfigurationList = DB76F4A22F6BC7BC007F584B /* Build configuration list for PBXProject "Irraze" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -112,7 +112,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				DB76F4A62F6BC7BC007F584B /* Dysob */,
+				DB76F4A62F6BC7BC007F584B /* Irraze */,
 			);
 		};
 /* End PBXProject section */
@@ -267,7 +267,8 @@
 				DEVELOPMENT_TEAM = 555V9YK43S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Dysob/Info.plist;
+				INFOPLIST_FILE = Irraze/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Irraze;
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Used to connect with nearby players for multiplayer.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -301,7 +302,8 @@
 				DEVELOPMENT_TEAM = 555V9YK43S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Dysob/Info.plist;
+				INFOPLIST_FILE = Irraze/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Irraze;
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Used to connect with nearby players for multiplayer.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -328,7 +330,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		DB76F4A22F6BC7BC007F584B /* Build configuration list for PBXProject "Dysob" */ = {
+		DB76F4A22F6BC7BC007F584B /* Build configuration list for PBXProject "Irraze" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DB76F4B02F6BC7BD007F584B /* Debug */,
@@ -337,7 +339,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		DB76F4B22F6BC7BD007F584B /* Build configuration list for PBXNativeTarget "Dysob" */ = {
+		DB76F4B22F6BC7BD007F584B /* Build configuration list for PBXNativeTarget "Irraze" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DB76F4B32F6BC7BD007F584B /* Debug */,
