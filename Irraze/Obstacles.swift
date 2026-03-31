@@ -6,6 +6,7 @@ struct Obstacles: View {
     var isFogged: Bool = false
     var fogPickups: [SkillPickup] = []
     var swapPickups: [SkillPickup] = []
+    var freezePickups: [SkillPickup] = []
     
     private let step = Constants.step
     private let maxY = Constants.maxY
@@ -61,6 +62,8 @@ struct Obstacles: View {
                         .fill(Color.brown)
                         .frame(width: 12, height: 12)
                         .offset(x: colToPixel(col: pickup.col), y: rowToPixel(row: pickup.row - cameraShift))
+                        .shadow(radius: 5)
+
                 }
             }
 
@@ -70,6 +73,17 @@ struct Obstacles: View {
                         .fill(Color.indigo)
                         .frame(width: 12, height: 12)
                         .offset(x: colToPixel(col: pickup.col), y: rowToPixel(row: pickup.row - cameraShift))
+                        .shadow(radius: 5)
+                }
+            }
+            
+            ForEach(freezePickups.filter { $0.row >= cameraShift && $0.row < shiftLimit }) { pickup in
+                if isVisibleInFog(row: pickup.row, col: pickup.col) {
+                    Circle()
+                        .fill(Color(Constants.freezeColor))
+                        .frame(width: 12, height: 12)
+                        .offset(x: colToPixel(col: pickup.col), y: rowToPixel(row: pickup.row - cameraShift))
+                        .shadow(radius: 5)
                 }
             }
         }

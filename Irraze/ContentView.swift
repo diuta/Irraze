@@ -33,7 +33,8 @@ struct ContentView: View {
                     ZStack {
                         if multipeerManager.gameReady {
                             Map(maze: maze)
-                            Obstacles(maze: maze, position: position, isFogged: multipeerManager.isFogged, fogPickups: multipeerManager.fogPickups, swapPickups: multipeerManager.swapPickups)
+                            Obstacles(maze: maze, position: position, isFogged: multipeerManager.isFogged, fogPickups: multipeerManager.fogPickups, swapPickups: multipeerManager.swapPickups, freezePickups: multipeerManager.freezePickups
+                            )
                             Player(maze: maze, position: position, color: localColor)
                             
                             if let remotePos = multipeerManager.remotePosition {
@@ -116,11 +117,15 @@ struct ContentView: View {
         }
         .onChange(of: multipeerManager.isConnected) { connected in
             if connected && multipeerManager.isHost {
-                let (fog, swap) = generatePickups(from: maze, count: 4)
+                let (fog, swap, freeze) = generatePickups(from: maze, count: 3)
+                
                 multipeerManager.fogPickups = fog
                 multipeerManager.swapPickups = swap
+                multipeerManager.freezePickups = freeze
+                
                 multipeerManager.sendMaze(maze.grid)
-                multipeerManager.sendPickups(fog: fog, swap: swap)
+                multipeerManager.sendPickups(fog: fog, swap: swap, freeze: freeze)
+                
             } else if !connected {
                 isFinished = false
             }
@@ -135,7 +140,7 @@ struct ContentView: View {
                 maze = MazeGenerator2(grid: grid)
                 isFinished = false
                 multipeerManager.opponentWon = false
-                multipeerManager.skillSlots = [nil, nil]   // clear both button slots
+                multipeerManager.skillSlots = [nil, nil]
                 position = !multipeerManager.isHost ? guestStart : hostStart
                 multipeerManager.sendPosition(position)
                 multipeerManager.receivedRestartGrid = nil
@@ -195,25 +200,28 @@ struct ContentView: View {
             maze = newMaze
             isFinished = false
             multipeerManager.opponentWon = false
-            multipeerManager.skillSlots = [nil, nil]   // clear both button slots for new round
-            let (fog, swap) = generatePickups(from: newMaze, count: 4)
+            multipeerManager.skillSlots = [nil, nil]
+            
+            let (fog, swap, freeze) = generatePickups(from: newMaze, count: 4)
             multipeerManager.fogPickups = fog
             multipeerManager.swapPickups = swap
+            multipeerManager.freezePickups = freeze
+            
             position = hostStart
             multipeerManager.sendRestart(newMaze.grid)
-            multipeerManager.sendPickups(fog: fog, swap: swap)
+            multipeerManager.sendPickups(fog: fog, swap: swap, freeze: freeze)
             multipeerManager.sendPosition(position)
         } else {
             isFinished = false
             multipeerManager.opponentWon = false
-            multipeerManager.skillSlots = [nil, nil]   // clear both button slots for new round
+            multipeerManager.skillSlots = [nil, nil]
             position = guestStart
             multipeerManager.sendPosition(position)
             multipeerManager.sendRestartRequest()
         }
     }
 
-    private func generatePickups(from maze: MazeGenerator2, count: Int) -> ([SkillPickup], [SkillPickup]) {
+    private func generatePickups(from maze: MazeGenerator2, count: Int) -> ([SkillPickup], [SkillPickup], [SkillPickup]) {
         var openTiles: [SkillPickup] = []
         for row in 1..<maze.rows-1 {
             for col in 1..<maze.cols-1 {
@@ -226,7 +234,8 @@ struct ContentView: View {
         openTiles.shuffle()
         let fog = Array(openTiles.prefix(count))
         let swap = Array(openTiles.dropFirst(count).prefix(count))
-        return (fog, swap)
+        let freeze = Array(openTiles.dropFirst(count*2).prefix(count))
+        return (fog, swap, freeze)
     }
 
     private func checkPickupCollection() {
@@ -234,24 +243,25 @@ struct ContentView: View {
         let row = pixelToRow(pixel: position.y)
         let col = pixelToCol(pixel: position.x)
 
-        // Check for a fog pickup on this tile.
-        // We only collect it if there is at least one empty button slot.
-        // Edge case: if both slots are full, the dot stays on the map — it can be
-        // collected later once a slot opens after using a skill.
         if multipeerManager.fogPickups.contains(where: { $0.row == row && $0.col == col }),
            multipeerManager.skillSlots.contains(nil) {
             multipeerManager.fogPickups.removeAll { $0.row == row && $0.col == col }
             multipeerManager.assignSkill(.fog)   // puts .fog into the first nil slot
-            multipeerManager.sendPickupCollected(isFog: true, row: row, col: col)
+            multipeerManager.sendPickupCollected(skillType: .fog, row: row, col: col)
         }
 
-        // Check for a swap pickup on this tile.
-        // Re-check contains(nil) — the fog check above may have just filled the last slot.
         if multipeerManager.swapPickups.contains(where: { $0.row == row && $0.col == col }),
            multipeerManager.skillSlots.contains(nil) {
             multipeerManager.swapPickups.removeAll { $0.row == row && $0.col == col }
             multipeerManager.assignSkill(.swap)  // puts .swap into the first nil slot
-            multipeerManager.sendPickupCollected(isFog: false, row: row, col: col)
+            multipeerManager.sendPickupCollected(skillType: .swap, row: row, col: col)
+        }
+        
+        if multipeerManager.freezePickups.contains(where: { $0.row == row && $0.col == col }),
+           multipeerManager.skillSlots.contains(nil) {
+            multipeerManager.freezePickups.removeAll { $0.row == row && $0.col == col }
+            multipeerManager.assignSkill(.freeze)  // puts .swap into the first nil slot
+            multipeerManager.sendPickupCollected(skillType: .freeze, row: row, col: col)
         }
     }
     

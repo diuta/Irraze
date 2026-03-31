@@ -18,4 +18,5 @@ public enum Constants {
     static let screenColor = Color(red: 198/255, green: 227/255, blue: 189.255)
     static let catridgeColor = Color(red: 84/255, green: 109/255, blue: 102/255)
     static let moveButtonColor = Color(red: 252/255, green: 232/255, blue: 80/255)
+    static let freezeColor = Color(red: 122/255, green: 191/255, blue: 186/255)
 }

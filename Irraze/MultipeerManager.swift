@@ -20,25 +20,20 @@ class MultipeerManager: NSObject, ObservableObject {
     @Published var receivedMazeGrid: [[Bool]]? = nil
     @Published var opponentWon: Bool = false
     @Published var receivedRestartGrid: [[Bool]]? = nil
+    
     @Published var isFogged: Bool = false
     @Published var swapPosition: CGPoint? = nil
+    @Published var isFrozen: Bool = false
     @Published var fogPickups: [SkillPickup] = []
     @Published var swapPickups: [SkillPickup] = []
-    // skillSlots is an array of 2 button slots.
-    // nil  = the slot is empty (button is gray and disabled)
-    // .fog  = this slot holds the fog skill (button is brown and active)
-    // .swap = this slot holds the swap skill (button is indigo and active)
-    //
-    // When a skill is picked up it fills the FIRST nil slot.
-    // When a skill is used that slot becomes nil again.
+    @Published var freezePickups: [SkillPickup] = []
+
     @Published var skillSlots: [SkillType?] = [nil, nil]
     @Published var receivedRestartRequest: Bool = false
 
-    // Discovery
     @Published var discoveredPeers: [MCPeerID] = []
     @Published var isBrowsing = false
 
-    // Invite handling
     @Published var pendingInvitePeerName: String? = nil
     @Published var showInviteAlert = false
     private var pendingInviteHandler: ((Bool, MCSession?) -> Void)? = nil
@@ -57,7 +52,6 @@ class MultipeerManager: NSObject, ObservableObject {
         advertiser.delegate = self
         browser.delegate = self
 
-        // Start advertising so others can find us, but do NOT auto-browse or auto-invite
         advertiser.startAdvertisingPeer()
     }
 
@@ -123,8 +117,10 @@ class MultipeerManager: NSObject, ObservableObject {
         receivedMazeGrid = nil
         isFogged = false
         swapPosition = nil
+        isFrozen = false
         fogPickups = []
         swapPickups = []
+        freezePickups = []
         skillSlots = [nil, nil]   // clear both button slots
         connectedPeerName = nil
         statusText = "Not Connected"
@@ -179,29 +175,28 @@ class MultipeerManager: NSObject, ObservableObject {
         guard isConnected else { return }
         send(.swap(x: Double(myPosition.x), y: Double(myPosition.y)))
     }
-
-    func sendPickups(fog: [SkillPickup], swap: [SkillPickup]) {
+    
+    func sendFreeze() {
         guard isConnected else { return }
-        send(.pickups(fog: fog, swap: swap))
+        send(.freeze)
     }
 
-    func sendPickupCollected(isFog: Bool, row: Int, col: Int) {
+    func sendPickups(fog: [SkillPickup], swap: [SkillPickup], freeze: [SkillPickup]) {
         guard isConnected else { return }
-        send(.pickupCollected(isFog: isFog, row: row, col: col))
+        send(.pickups(fog: fog, swap: swap, freeze: freeze))
     }
 
-    // Called when the player walks over a pickup tile.
-    // Finds the first empty slot and puts the skill there.
-    // If all slots are full, the skill is silently ignored
-    // (the pickup dot stays on the map until a slot opens).
+    func sendPickupCollected(skillType: SkillType, row: Int, col: Int) {
+        guard isConnected else { return }
+        send(.pickupCollected(skillType: skillType, row: row, col: col))
+    }
+
     func assignSkill(_ skill: SkillType) {
         if let freeIndex = skillSlots.firstIndex(where: { $0 == nil }) {
             skillSlots[freeIndex] = skill
         }
     }
 
-    // Called when the player activates a skill.
-    // Empties that slot so it can receive the next pickup.
     func clearSkillSlot(_ index: Int) {
         guard index < skillSlots.count else { return }
         skillSlots[index] = nil
@@ -262,14 +257,20 @@ extension MultipeerManager: MCSessionDelegate {
                 }
             case .swap(let x, let y):
                 self.swapPosition = CGPoint(x: x, y: y)
-            case .pickups(let fog, let swap):
+            case .freeze:
+                self.isFrozen = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                    self.isFrozen = false
+                }
+            case .pickups(let fog, let swap, let freeze):
                 self.fogPickups = fog
                 self.swapPickups = swap
-            case .pickupCollected(let isFog, let row, let col):
-                if isFog {
-                    self.fogPickups.removeAll { $0.row == row && $0.col == col }
-                } else {
-                    self.swapPickups.removeAll { $0.row == row && $0.col == col }
+                self.freezePickups = freeze
+            case .pickupCollected(let skillType, let row, let col):
+                switch skillType {
+                case .fog: self.fogPickups.removeAll    { $0.row == row && $0.col == col }
+                case .swap: self.swapPickups.removeAll   { $0.row == row && $0.col == col }
+                case .freeze: self.freezePickups.removeAll { $0.row == row && $0.col == col }
                 }
             case .restartRequest:
                 self.receivedRestartRequest = true
