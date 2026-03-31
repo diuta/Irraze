@@ -6,7 +6,6 @@ struct UserInput: View {
     @Binding var position: CGPoint
     @Binding var isFinished: Bool
     @ObservedObject var multipeerManager: MultipeerManager
-
     
     var body: some View {
         movementButtons
@@ -14,18 +13,6 @@ struct UserInput: View {
     
     private var movementButtons: some View {
         HStack(spacing: 125) {
-//            HStack(spacing: 0) {
-//                MovementButtons(label: "", width: 50, height: 50) { move(x: -Constants.step, y: 0) }
-//                VStack(spacing: 0) {
-//                    MovementButtons(label: "", width: 50, height: 50) { move(x: 0, y: -Constants.step) }
-//                    Rectangle()
-//                        .fill(Color(Constants.moveButtonColor))
-//                        .frame(width: 50, height: 50)
-//                    MovementButtons(label: "", width: 50, height: 50) { move(x: 0, y: Constants.step) }
-//                }
-//                MovementButtons(label: "", width: 50, height: 50) { move(x: Constants.step, y: 0) }
-//            }
-            
             HStack(spacing: 0) {
                 Button {
                     haptic()
@@ -70,31 +57,39 @@ struct UserInput: View {
             .compositingGroup()
             .shadow(color: .black, radius: 0, x: 7, y: 7)
                         
-            VStack{
-                Button{
+            VStack {
+                // --- Button Slot 0 (top button) ---
+                // Displays whatever skill was picked up FIRST.
+                // Gray and disabled when empty; colored and active when a skill is stored.
+                let slot0 = multipeerManager.skillSlots[0]
+                Button {
                     haptic(.medium)
-                    useFogOfWar()
+                    useSkillInSlot(0)
                 } label: {
                     Circle()
-                        .fill(multipeerManager.hasFog ? Color.brown : Color.gray)
+                        // skill?.color gives the skill's own color; nil falls back to gray
+                        .fill(slot0?.color ?? Color.gray)
                         .frame(width: 70, height: 70)
                 }
-                .disabled(!multipeerManager.hasFog)
+                .disabled(slot0 == nil)   // can't press an empty slot
                 .offset(x: -65)
                 .shadow(color: .black, radius: 0, x: 5, y: 5)
 
-                Button{
+                // --- Button Slot 1 (bottom button) ---
+                // Displays whatever skill was picked up SECOND
+                // (or first if slot 0 was already freed and refilled).
+                let slot1 = multipeerManager.skillSlots[1]
+                Button {
                     haptic(.medium)
-                    useSwap()
+                    useSkillInSlot(1)
                 } label: {
                     Circle()
-                        .fill(multipeerManager.hasSwap ? Color.indigo : Color.gray)
+                        .fill(slot1?.color ?? Color.gray)
                         .frame(width: 70, height: 70)
                 }
-                .disabled(!multipeerManager.hasSwap)
+                .disabled(slot1 == nil)
                 .offset(x: 10)
                 .shadow(color: .black, radius: 0, x: 5, y: 5)
-
             }
         }
         .padding(30)
@@ -128,30 +123,40 @@ struct UserInput: View {
         }
     }
 
-    func useFogOfWar() {
+    // Called when the player taps a skill button.
+    // index = 0 for the top button, 1 for the bottom button.
+    //
+    // This single function replaces useFogOfWar() and useSwap().
+    // It reads whatever skill is in the given slot, applies its effect,
+    // then empties the slot so the next pickup can fill it.
+    func useSkillInSlot(_ index: Int) {
+        // Safety checks: game must be running and the slot must not be empty
         guard multipeerManager.gameReady,
               !isFinished,
               !multipeerManager.opponentWon,
-              multipeerManager.hasFog else { return }
+              let skill = multipeerManager.skillSlots[index] else { return }
 
-        multipeerManager.sendFogOfWar()
-        multipeerManager.hasFog = false
-        SoundManager.shared.play("skill")
-    }
+        switch skill {
 
-    func useSwap() {
-        guard multipeerManager.gameReady,
-              !isFinished,
-              !multipeerManager.opponentWon,
-              multipeerManager.hasSwap,
-              let remotePos = multipeerManager.remotePosition else { return }
+        case .fog:
+            // Tell opponent they are fogged, then empty this slot
+            multipeerManager.sendFogOfWar()
+            multipeerManager.clearSkillSlot(index)
+            SoundManager.shared.play("skill")
 
-        let myPos = position
-        multipeerManager.sendSwap(myPosition: myPos)
-        position = remotePos
-        multipeerManager.sendPosition(position)
-        multipeerManager.hasSwap = false
-        SoundManager.shared.play("skill")
+        case .swap:
+            // We need to know where the opponent currently is to teleport there.
+            // If we don't know yet (remotePosition is nil), do nothing.
+            guard let remotePos = multipeerManager.remotePosition else { return }
+            let myPos = position
+            multipeerManager.sendSwap(myPosition: myPos) // opponent moves to our old spot
+            position = remotePos                          // we move to their spot
+            multipeerManager.sendPosition(position)       // tell everyone our new position
+            multipeerManager.clearSkillSlot(index)
+            SoundManager.shared.play("skill")
+        }
+        // NOTE: To add a new skill, just add a new case here.
+        // The compiler will warn you if you forget to handle a SkillType case.
     }
 }
 

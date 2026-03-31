@@ -105,7 +105,7 @@ struct ContentView: View {
                     maze: $maze,
                     position: $position,
                     isFinished: $isFinished,
-                    multipeerManager: multipeerManager
+                    multipeerManager: multipeerManager,
                 )
                 .offset(x: -10, y:533)
                 
@@ -135,8 +135,7 @@ struct ContentView: View {
                 maze = MazeGenerator2(grid: grid)
                 isFinished = false
                 multipeerManager.opponentWon = false
-                multipeerManager.hasFog = false
-                multipeerManager.hasSwap = false
+                multipeerManager.skillSlots = [nil, nil]   // clear both button slots
                 position = !multipeerManager.isHost ? guestStart : hostStart
                 multipeerManager.sendPosition(position)
                 multipeerManager.receivedRestartGrid = nil
@@ -154,7 +153,9 @@ struct ContentView: View {
         }
         .onChange(of: multipeerManager.swapPosition) { newPos in
             if let newPos = newPos {
-                position = newPos
+                withAnimation(.spring()) {
+                    position = newPos
+                }
                 multipeerManager.sendPosition(position)
                 multipeerManager.swapPosition = nil
             }
@@ -194,8 +195,7 @@ struct ContentView: View {
             maze = newMaze
             isFinished = false
             multipeerManager.opponentWon = false
-            multipeerManager.hasFog = false
-            multipeerManager.hasSwap = false
+            multipeerManager.skillSlots = [nil, nil]   // clear both button slots for new round
             let (fog, swap) = generatePickups(from: newMaze, count: 4)
             multipeerManager.fogPickups = fog
             multipeerManager.swapPickups = swap
@@ -206,8 +206,7 @@ struct ContentView: View {
         } else {
             isFinished = false
             multipeerManager.opponentWon = false
-            multipeerManager.hasFog = false
-            multipeerManager.hasSwap = false
+            multipeerManager.skillSlots = [nil, nil]   // clear both button slots for new round
             position = guestStart
             multipeerManager.sendPosition(position)
             multipeerManager.sendRestartRequest()
@@ -235,17 +234,23 @@ struct ContentView: View {
         let row = pixelToRow(pixel: position.y)
         let col = pixelToCol(pixel: position.x)
 
-        if !multipeerManager.hasFog,
-           multipeerManager.fogPickups.contains(where: { $0.row == row && $0.col == col }) {
-            multipeerManager.hasFog = true
+        // Check for a fog pickup on this tile.
+        // We only collect it if there is at least one empty button slot.
+        // Edge case: if both slots are full, the dot stays on the map — it can be
+        // collected later once a slot opens after using a skill.
+        if multipeerManager.fogPickups.contains(where: { $0.row == row && $0.col == col }),
+           multipeerManager.skillSlots.contains(nil) {
             multipeerManager.fogPickups.removeAll { $0.row == row && $0.col == col }
+            multipeerManager.assignSkill(.fog)   // puts .fog into the first nil slot
             multipeerManager.sendPickupCollected(isFog: true, row: row, col: col)
         }
 
-        if !multipeerManager.hasSwap,
-           multipeerManager.swapPickups.contains(where: { $0.row == row && $0.col == col }) {
-            multipeerManager.hasSwap = true
+        // Check for a swap pickup on this tile.
+        // Re-check contains(nil) — the fog check above may have just filled the last slot.
+        if multipeerManager.swapPickups.contains(where: { $0.row == row && $0.col == col }),
+           multipeerManager.skillSlots.contains(nil) {
             multipeerManager.swapPickups.removeAll { $0.row == row && $0.col == col }
+            multipeerManager.assignSkill(.swap)  // puts .swap into the first nil slot
             multipeerManager.sendPickupCollected(isFog: false, row: row, col: col)
         }
     }

@@ -24,8 +24,14 @@ class MultipeerManager: NSObject, ObservableObject {
     @Published var swapPosition: CGPoint? = nil
     @Published var fogPickups: [SkillPickup] = []
     @Published var swapPickups: [SkillPickup] = []
-    @Published var hasFog: Bool = false
-    @Published var hasSwap: Bool = false
+    // skillSlots is an array of 2 button slots.
+    // nil  = the slot is empty (button is gray and disabled)
+    // .fog  = this slot holds the fog skill (button is brown and active)
+    // .swap = this slot holds the swap skill (button is indigo and active)
+    //
+    // When a skill is picked up it fills the FIRST nil slot.
+    // When a skill is used that slot becomes nil again.
+    @Published var skillSlots: [SkillType?] = [nil, nil]
     @Published var receivedRestartRequest: Bool = false
 
     // Discovery
@@ -119,8 +125,7 @@ class MultipeerManager: NSObject, ObservableObject {
         swapPosition = nil
         fogPickups = []
         swapPickups = []
-        hasFog = false
-        hasSwap = false
+        skillSlots = [nil, nil]   // clear both button slots
         connectedPeerName = nil
         statusText = "Not Connected"
         discoveredPeers = []
@@ -183,6 +188,23 @@ class MultipeerManager: NSObject, ObservableObject {
     func sendPickupCollected(isFog: Bool, row: Int, col: Int) {
         guard isConnected else { return }
         send(.pickupCollected(isFog: isFog, row: row, col: col))
+    }
+
+    // Called when the player walks over a pickup tile.
+    // Finds the first empty slot and puts the skill there.
+    // If all slots are full, the skill is silently ignored
+    // (the pickup dot stays on the map until a slot opens).
+    func assignSkill(_ skill: SkillType) {
+        if let freeIndex = skillSlots.firstIndex(where: { $0 == nil }) {
+            skillSlots[freeIndex] = skill
+        }
+    }
+
+    // Called when the player activates a skill.
+    // Empties that slot so it can receive the next pickup.
+    func clearSkillSlot(_ index: Int) {
+        guard index < skillSlots.count else { return }
+        skillSlots[index] = nil
     }
 
     private func send(_ message: PlayerMessage) {

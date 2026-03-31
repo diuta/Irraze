@@ -27,7 +27,6 @@ struct Player: View {
                 .fill(color)
                 .frame(width: 15, height: 15)
                 .offset(x: position.x, y: playerRowView)
-                .animation(.spring(), value: position)
         }
     }
 }

@@ -39,7 +39,6 @@ struct RemotePlayer: View {
                 .fill(color)
                 .frame(width: 15, height: 15)
                 .offset(x: remotePosition.x, y: remoteVisualY)
-                .animation(.spring(), value: remotePosition)
         }
     }
 }
