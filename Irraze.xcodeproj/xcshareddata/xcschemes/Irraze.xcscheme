@@ -16,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "DB76F4A62F6BC7BC007F584B"
-               BuildableName = "Dysob.app"
-               BlueprintName = "Dysob"
-               ReferencedContainer = "container:Dysob.xcodeproj">
+               BuildableName = "Irraze.app"
+               BlueprintName = "Irraze"
+               ReferencedContainer = "container:Irraze.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "DB76F4A62F6BC7BC007F584B"
-            BuildableName = "Dysob.app"
-            BlueprintName = "Dysob"
-            ReferencedContainer = "container:Dysob.xcodeproj">
+            BuildableName = "Irraze.app"
+            BlueprintName = "Irraze"
+            ReferencedContainer = "container:Irraze.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -62,9 +62,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "DB76F4A62F6BC7BC007F584B"
-            BuildableName = "Dysob.app"
-            BlueprintName = "Dysob"
-            ReferencedContainer = "container:Dysob.xcodeproj">
+            BuildableName = "Irraze.app"
+            BlueprintName = "Irraze"
+            ReferencedContainer = "container:Irraze.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
