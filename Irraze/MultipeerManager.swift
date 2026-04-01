@@ -109,22 +109,26 @@ class MultipeerManager: NSObject, ObservableObject {
 
     func disconnect() {
         session.disconnect()
+        
         isConnected = false
         isHost = true
         roleDecided = false
         gameReady = false
         remotePosition = nil
         receivedMazeGrid = nil
+        
         isFogged = false
         swapPosition = nil
         isFrozen = false
         fogPickups = []
         swapPickups = []
         freezePickups = []
-        skillSlots = [nil, nil]   // clear both button slots
+        skillSlots = [nil, nil]
+        
         connectedPeerName = nil
         statusText = "Not Connected"
         discoveredPeers = []
+        
         opponentWon = false
         receivedRestartRequest = false
 

@@ -7,6 +7,10 @@ struct ContentView: View {
     @State private var position = CGPoint.zero
     @State private var showPeerSheet = false
     @State private var isFinished = false
+    @State private var firstGuide = true
+    @State private var secondGuide = false
+    @State private var thirdGuide = false
+    @State private var fourthGuide = false
     @State private var showGame = false
 
     var rows: Int { maze.rows }
@@ -34,22 +38,10 @@ struct ContentView: View {
                     ZStack {
                         if multipeerManager.gameReady {
                             if !showGame {
-                                VStack{
-                                    Text("RACE TO THE FINISH LINE !!")
-                                        .font(.headline)
-                                        .foregroundColor(.black)
-                                        .onAppear {
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                                                showGame = true
-                                            }
-                                        }
-                                    Text("(AT THE BOTTOM)")
-                                        .font(.headline)
-                                        .foregroundColor(.black)
-                                }
-                                .padding(.top, geo.size.height * 0.15)
+                                instructions()
+                                    .frame(width: geo.size.width * 0.65, height: geo.size.height * 0.35)
                             } else {
-                                Map(maze: maze)
+                                Map()
                                 Obstacles(maze: maze, position: position, isFogged: multipeerManager.isFogged, fogPickups: multipeerManager.fogPickups, swapPickups: multipeerManager.swapPickups, freezePickups: multipeerManager.freezePickups)
                                 Player(maze: maze, position: position, color: localColor)
                                 
@@ -64,7 +56,7 @@ struct ContentView: View {
                                 ProgressView()
                                     .tint(.black)
                                 Text("Waiting for opponent...")
-                                    .font(.headline)
+                                    .font(.custom("PressStart2P-Regular", size: 10))
                                     .foregroundColor(.black)
                             }
                             .padding(.top, geo.size.height * 0.15)
@@ -75,13 +67,13 @@ struct ContentView: View {
                             VStack(spacing: 16){
                                 if isFinished {
                                     Text("YOU WIN!")
-                                        .font(.largeTitle)
+                                        .font(.custom("PressStart2P-Regular", size: 10))
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
                                         .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 0)
                                 } else {
                                     Text("YOU LOSE!")
-                                        .font(.largeTitle)
+                                        .font(.custom("PressStart2P-Regular", size: 10))
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
                                         .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 0)
@@ -92,7 +84,7 @@ struct ContentView: View {
                                     restartGame()
                                 } label: {
                                     Text("Try Again")
-                                        .font(.headline)
+                                        .font(.custom("PressStart2P-Regular", size: 10))
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
                                         .padding(.horizontal, 32)
@@ -137,8 +129,19 @@ struct ContentView: View {
                 multipeerManager.sendMaze(maze.grid)
                 multipeerManager.sendPickups(fog: fog, swap: swap, freeze: freeze)
                 
+                firstGuide = true
+                secondGuide = false
+                thirdGuide = false
+                fourthGuide = false
+                showGame = false
+                
             } else if !connected {
                 isFinished = false
+                firstGuide = true
+                secondGuide = false
+                thirdGuide = false
+                fourthGuide = false
+                showGame = false
             }
         }
         .onChange(of: multipeerManager.receivedMazeGrid) { grid in
@@ -155,6 +158,12 @@ struct ContentView: View {
                 position = !multipeerManager.isHost ? guestStart : hostStart
                 multipeerManager.sendPosition(position)
                 multipeerManager.receivedRestartGrid = nil
+                
+                firstGuide = true
+                secondGuide = false
+                thirdGuide = false
+                fourthGuide = false
+                showGame = false
             }
         }
         .onChange(of: multipeerManager.receivedRestartRequest) { requested in
@@ -206,6 +215,12 @@ struct ContentView: View {
     }
 
     private func restartGame() {
+        firstGuide = true
+        secondGuide = false
+        thirdGuide = false
+        fourthGuide = false
+        showGame = false
+        
         if multipeerManager.isHost {
             let newMaze = MazeGenerator2(rows: Constants.rows, cols: Constants.cols)
             maze = newMaze
@@ -278,8 +293,8 @@ struct ContentView: View {
     
     private var connectionToolbar: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(multipeerManager.isConnected ? "DISCONNECT" : "CONNECT TO ANOTHER PLAYER")
-                .font(.caption2)
+            Text(multipeerManager.isConnected ? "CLICK HERE TO DISCONNECT" : "CLICK HERE TO CONNECT")
+                .font(.custom("PressStart2P-Regular", size: 7))
                 .fontWeight(.bold)
                 .foregroundColor(!multipeerManager.isConnected ? .white.opacity(0.75) : .red)
             
@@ -292,6 +307,9 @@ struct ContentView: View {
                         position = hostStart
                         isFinished = false
                         multipeerManager.opponentWon = false
+                        
+                        firstGuide = true
+                        showGame = false
                     } label: {
                         Rectangle()
                             .fill(Color(Constants.catridgeColor))
@@ -369,8 +387,160 @@ struct ContentView: View {
         }
         .presentationDetents([.medium])
     }
+
+    @ViewBuilder
+    private func instructions() -> some View {
+        VStack {
+            if firstGuide {
+                VStack(spacing: 20) {
+                    Text("RACE TO THE BOTTOM OF THE MAZE")
+                        .font(.custom("PressStart2P-Regular", size: 10))
+                        .foregroundColor(.black)
+                        .multilineTextAlignment(.center)
+                    
+                    CountdownBar(duration: 5.0)
+                        .padding(.horizontal, 40)
+                }
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                        firstGuide = false
+                        secondGuide = true
+                    }
+                }
+            } else if secondGuide {
+                VStack(spacing: 20) {
+                    Text("THERE WILL BE 3 POWERS ACROSS THE MAZE....")
+                        .font(.custom("PressStart2P-Regular", size: 10))
+                        .foregroundColor(.black)
+                        .multilineTextAlignment(.center)
+                    
+                    CountdownBar(duration: 5.0)
+                        .padding(.horizontal, 40)
+                }
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                        secondGuide = false
+                        thirdGuide = true
+                    }
+                }
+            } else if thirdGuide {
+                VStack(spacing: 30){
+                    VStack(spacing:10){
+                        Circle()
+                            .fill(Color(Constants.freezeColor))
+                            .frame(width: 12, height: 12)
+                            .shadow(radius: 3)
+                        Text("FREEZE")
+                            .font(.custom("PressStart2P-Regular", size: 10))
+                            .foregroundColor(.black)
+                        Text("Freeze opponent's movement")
+                            .font(.custom("PressStart2P-Regular", size: 7))
+                            .foregroundColor(.black)
+                            .multilineTextAlignment(.center)
+                    }
+                    VStack(spacing:10){
+                        Circle()
+                            .fill(Color.indigo)
+                            .frame(width: 12, height: 12)
+                            .shadow(radius: 3)
+                        Text("SWAP")
+                            .font(.custom("PressStart2P-Regular", size: 10))
+                            .foregroundColor(.black)
+                        Text("Swap position with the opponent's")
+                            .font(.custom("PressStart2P-Regular", size: 7))
+                            .foregroundColor(.black)
+                            .multilineTextAlignment(.center)
+                    }
+                    VStack(spacing:10){
+                        Circle()
+                            .fill(Color.brown)
+                            .frame(width: 12, height: 12)
+                            .shadow(radius: 3)
+                        Text("FOG")
+                            .font(.custom("PressStart2P-Regular", size: 10))
+                            .foregroundColor(.black)
+                        Text("Fog opponent's vision")
+                            .font(.custom("PressStart2P-Regular", size: 7))
+                            .foregroundColor(.black)
+                            .multilineTextAlignment(.center)
+                    }
+                    
+                    CountdownBar(duration: 10.0)
+                        .padding(.horizontal, 40)
+                }
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                        thirdGuide = false
+                        fourthGuide = true
+                    }
+                }
+            } else if fourthGuide {
+                VStack(spacing: 30){
+                    VStack{
+                        Circle()
+                            .fill(Color.gray)
+                            .frame(width: 40, height: 40)
+                            .offset(x: -20)
+                            .shadow(color: .black, radius: 0, x: 5, y: 5)
+                        Circle()
+                            .fill(Color.gray)
+                            .frame(width: 40, height: 40)
+                            .offset(x: 20)
+                            .shadow(color: .black, radius: 0, x: 5, y: 5)
+                    }
+                    
+                    VStack(spacing: 10){
+                        Text("SKILL BUTTONS")
+                            .font(.custom("PressStart2P-Regular", size: 10))
+                            .foregroundColor(.black)
+                        Text("Will be available when you picked up a skill")
+                            .font(.custom("PressStart2P-Regular", size: 7))
+                            .foregroundColor(.black)
+                            .multilineTextAlignment(.center)
+                    }
+                    
+                    CountdownBar(duration: 10.0)
+                        .padding(.horizontal, 40)
+                }
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                        showGame = true
+                        fourthGuide = false
+                        firstGuide = true
+                        SoundManager.shared.play("gamestart")
+                    }
+                }
+            }
+        }
+    }
 }
 
 #Preview {
     ContentView()
+}
+
+struct CountdownBar: View {
+    let duration: Double
+    @State private var progress: CGFloat = 0.0
+    
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Rectangle()
+                    .stroke(Color.black, lineWidth: 2)
+                
+                Rectangle()
+                    .fill(Color.black)
+                    .frame(width: max(0, geo.size.width * progress - 4))
+                    .padding(2)
+            }
+        }
+        .frame(height: 12)
+        .onAppear {
+            progress = 0.0
+            withAnimation(.linear(duration: duration)) {
+                progress = 1.0
+            }
+        }
+    }
 }

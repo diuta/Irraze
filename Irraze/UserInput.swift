@@ -18,7 +18,6 @@ private struct ArcText: View {
     }
 
     private func characterView(char: Character, index: Int) -> some View {
-        // t = how far along the arc this character sits (0.0 = start, 1.0 = end)
         let t: CGFloat = characters.count > 1
             ? CGFloat(index) / CGFloat(characters.count - 1)
             : 0.5
@@ -26,7 +25,7 @@ private struct ArcText: View {
         let angleRad = angleDeg * .pi / 180.0
 
         return Text(String(char))
-            .font(.system(size: 7.5, weight: .semibold))
+            .font(.custom("PressStart2P-Regular", size: 5))
             .foregroundColor(.white.opacity(0.85))
             .rotationEffect(.degrees(angleDeg + 90))
             .offset(x: radius * cos(angleRad), y: radius * sin(angleRad))
@@ -109,7 +108,7 @@ struct UserInput: View {
                     .shadow(color: .black, radius: 0, x: 5, y: 5)
 
                     if let skill = slot0 {
-                        ArcText(text: skillLabel(for: skill), radius: 28, startAngle: -180, endAngle: 0)
+                        ArcText(text: skillLabel(for: skill), radius: 28, startAngle: -180, endAngle: 90)
                     }
                 }
                 .offset(x: -65)
