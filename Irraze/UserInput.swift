@@ -1,6 +1,38 @@
 import Foundation
 import SwiftUI
 
+private struct ArcText: View {
+    let text: String
+    let radius: CGFloat
+    let startAngle: CGFloat
+    let endAngle: CGFloat
+
+    private var characters: [Character] { Array(text) }
+
+    var body: some View {
+        ZStack {
+            ForEach(Array(characters.enumerated()), id: \.offset) { index, char in
+                characterView(char: char, index: index)
+            }
+        }
+    }
+
+    private func characterView(char: Character, index: Int) -> some View {
+        // t = how far along the arc this character sits (0.0 = start, 1.0 = end)
+        let t: CGFloat = characters.count > 1
+            ? CGFloat(index) / CGFloat(characters.count - 1)
+            : 0.5
+        let angleDeg = startAngle + (endAngle - startAngle) * t
+        let angleRad = angleDeg * .pi / 180.0
+
+        return Text(String(char))
+            .font(.system(size: 7.5, weight: .semibold))
+            .foregroundColor(.white.opacity(0.85))
+            .rotationEffect(.degrees(angleDeg + 90))
+            .offset(x: radius * cos(angleRad), y: radius * sin(angleRad))
+    }
+}
+
 struct UserInput: View {
     @Binding var maze: MazeGenerator2
     @Binding var position: CGPoint
@@ -19,10 +51,10 @@ struct UserInput: View {
                     move(x: -Constants.step, y: 0)
                 } label: {
                     Rectangle()
-                        .fill(multipeerManager.isFrozen ? Color.gray : Color(Constants.moveButtonColor))
+                        .fill(multipeerManager.isFrozen || !multipeerManager.gameReady ? Color.gray : Color(Constants.moveButtonColor))
                         .frame(width: 50, height: 50)
                 }
-                .disabled(multipeerManager.isFrozen)
+                .disabled(multipeerManager.isFrozen || !multipeerManager.gameReady)
                 
                 VStack(spacing: 0) {
                     Button {
@@ -30,13 +62,13 @@ struct UserInput: View {
                         move(x: 0, y: -Constants.step)
                     } label: {
                         Rectangle()
-                            .fill(multipeerManager.isFrozen ? Color.gray : Color(Constants.moveButtonColor))
+                            .fill(multipeerManager.isFrozen || !multipeerManager.gameReady ? Color.gray : Color(Constants.moveButtonColor))
                             .frame(width: 50, height: 50)
                     }
-                    .disabled(multipeerManager.isFrozen)
+                    .disabled(multipeerManager.isFrozen || !multipeerManager.gameReady)
                     
                     Rectangle()
-                        .fill(multipeerManager.isFrozen ? Color.gray : Color(Constants.moveButtonColor))
+                        .fill(multipeerManager.isFrozen || !multipeerManager.gameReady ? Color.gray : Color(Constants.moveButtonColor))
                         .frame(width: 50, height: 50)
                     
                     Button {
@@ -44,51 +76,61 @@ struct UserInput: View {
                         move(x: 0, y: Constants.step)
                     } label: {
                         Rectangle()
-                            .fill(multipeerManager.isFrozen ? Color.gray : Color(Constants.moveButtonColor))
+                            .fill(multipeerManager.isFrozen || !multipeerManager.gameReady ? Color.gray : Color(Constants.moveButtonColor))
                             .frame(width: 50, height: 50)
                     }
-                    .disabled(multipeerManager.isFrozen)
-                    
+                    .disabled(multipeerManager.isFrozen || !multipeerManager.gameReady)
                 }
                 Button {
                     haptic()
                     move(x: Constants.step, y: 0)
                 } label: {
                     Rectangle()
-                        .fill(multipeerManager.isFrozen ? Color.gray : Color(Constants.moveButtonColor))
+                        .fill(multipeerManager.isFrozen || !multipeerManager.gameReady ? Color.gray : Color(Constants.moveButtonColor))
                         .frame(width: 50, height: 50)
                 }
-                .disabled(multipeerManager.isFrozen)
+                .disabled(multipeerManager.isFrozen || !multipeerManager.gameReady)
             }
             .compositingGroup()
             .shadow(color: .black, radius: 0, x: 7, y: 7)
                         
             VStack {
                 let slot0 = multipeerManager.skillSlots[0]
-                Button {
-                    haptic(.medium)
-                    useSkillInSlot(0)
-                } label: {
-                    Circle()
-                        .fill(slot0?.color ?? Color.gray)
-                        .frame(width: 70, height: 70)
+                ZStack {
+                    Button {
+                        haptic(.medium)
+                        useSkillInSlot(0)
+                    } label: {
+                        Circle()
+                            .fill(slot0?.color ?? Color.gray)
+                            .frame(width: 70, height: 70)
+                    }
+                    .disabled(slot0 == nil)
+                    .shadow(color: .black, radius: 0, x: 5, y: 5)
+
+                    if let skill = slot0 {
+                        ArcText(text: skillLabel(for: skill), radius: 28, startAngle: -180, endAngle: 0)
+                    }
                 }
-                .disabled(slot0 == nil)   // can't press an empty slot
                 .offset(x: -65)
-                .shadow(color: .black, radius: 0, x: 5, y: 5)
 
                 let slot1 = multipeerManager.skillSlots[1]
-                Button {
-                    haptic(.medium)
-                    useSkillInSlot(1)
-                } label: {
-                    Circle()
-                        .fill(slot1?.color ?? Color.gray)
-                        .frame(width: 70, height: 70)
+                ZStack {
+                    Button {
+                        haptic(.medium)
+                        useSkillInSlot(1)
+                    } label: {
+                        Circle()
+                            .fill(slot1?.color ?? Color.gray)
+                            .frame(width: 70, height: 70)
+                    }
+                    .disabled(slot1 == nil)
+                    .shadow(color: .black, radius: 0, x: 5, y: 5)
+
+                    if let skill = slot1 {
+                        ArcText(text: skillLabel(for: skill), radius: 28, startAngle: -180, endAngle: 0)
+                    }
                 }
-                .disabled(slot1 == nil)
-                .offset(x: 10)
-                .shadow(color: .black, radius: 0, x: 5, y: 5)
             }
         }
         .padding(30)
@@ -114,12 +156,23 @@ struct UserInput: View {
         position.x += x
         position.y += y
         multipeerManager.sendPosition(position)
-        SoundManager.shared.play("move")
-
+        
+        DispatchQueue.global().async {
+            SoundManager.shared.play("move")
+        }
+        
         isFinished = maze.isFinish(row: newRow, col: newCol)
         
         if isFinished {
             multipeerManager.sendGameOver()
+        }
+    }
+
+    private func skillLabel(for skill: SkillType) -> String {
+        switch skill {
+        case .fog:    return "fog is ready!"
+        case .swap:   return "swap is ready!"
+        case .freeze: return "freeze is ready!"
         }
     }
 

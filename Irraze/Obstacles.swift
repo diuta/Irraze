@@ -62,7 +62,7 @@ struct Obstacles: View {
                         .fill(Color.brown)
                         .frame(width: 12, height: 12)
                         .offset(x: colToPixel(col: pickup.col), y: rowToPixel(row: pickup.row - cameraShift))
-                        .shadow(radius: 5)
+                        .shadow(radius: 3)
 
                 }
             }
@@ -73,7 +73,7 @@ struct Obstacles: View {
                         .fill(Color.indigo)
                         .frame(width: 12, height: 12)
                         .offset(x: colToPixel(col: pickup.col), y: rowToPixel(row: pickup.row - cameraShift))
-                        .shadow(radius: 5)
+                        .shadow(radius: 3)
                 }
             }
             
@@ -83,7 +83,7 @@ struct Obstacles: View {
                         .fill(Color(Constants.freezeColor))
                         .frame(width: 12, height: 12)
                         .offset(x: colToPixel(col: pickup.col), y: rowToPixel(row: pickup.row - cameraShift))
-                        .shadow(radius: 5)
+                        .shadow(radius: 3)
                 }
             }
         }

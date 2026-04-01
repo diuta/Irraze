@@ -21,6 +21,7 @@ struct SkillPickup: Codable, Equatable, Hashable, Identifiable {
     var id: String { "\(row)-\(col)" }
 }
 
+//Associated Value
 enum PlayerMessage: Codable {
     case position(x: Double, y: Double)
     case maze(grid: [[Bool]])

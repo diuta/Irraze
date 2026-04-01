@@ -7,6 +7,7 @@ struct ContentView: View {
     @State private var position = CGPoint.zero
     @State private var showPeerSheet = false
     @State private var isFinished = false
+    @State private var showGame = false
 
     var rows: Int { maze.rows }
     var cols: Int { maze.cols }
@@ -32,32 +33,42 @@ struct ContentView: View {
                 ZStack(alignment: .topLeading) {
                     ZStack {
                         if multipeerManager.gameReady {
-                            Map(maze: maze)
-                            Obstacles(maze: maze, position: position, isFogged: multipeerManager.isFogged, fogPickups: multipeerManager.fogPickups, swapPickups: multipeerManager.swapPickups, freezePickups: multipeerManager.freezePickups
-                            )
-                            Player(maze: maze, position: position, color: localColor)
-                            
-                            if let remotePos = multipeerManager.remotePosition {
-                                RemotePlayer(
-                                    remotePosition: remotePos,
-                                    localPosition: position,
-                                    color: remoteColor,
-                                    maze: maze
-                                )
+                            if !showGame {
+                                VStack{
+                                    Text("RACE TO THE FINISH LINE !!")
+                                        .font(.headline)
+                                        .foregroundColor(.black)
+                                        .onAppear {
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                                                showGame = true
+                                            }
+                                        }
+                                    Text("(AT THE BOTTOM)")
+                                        .font(.headline)
+                                        .foregroundColor(.black)
+                                }
+                                .padding(.top, geo.size.height * 0.15)
+                            } else {
+                                Map(maze: maze)
+                                Obstacles(maze: maze, position: position, isFogged: multipeerManager.isFogged, fogPickups: multipeerManager.fogPickups, swapPickups: multipeerManager.swapPickups, freezePickups: multipeerManager.freezePickups)
+                                Player(maze: maze, position: position, color: localColor)
+                                
+                                if let remotePos = multipeerManager.remotePosition {
+                                    RemotePlayer(remotePosition: remotePos, localPosition: position, color: remoteColor, maze: maze)
+                                }
                             }
                         }
                         
                         if !multipeerManager.gameReady {
                             VStack(spacing: 12) {
                                 ProgressView()
-                                    .tint(.white)
-                                    .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 0)
+                                    .tint(.black)
                                 Text("Waiting for opponent...")
                                     .font(.headline)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.black)
                             }
                             .padding(.top, geo.size.height * 0.15)
-                            .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 0)
+                            .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 0)
                         }
                         
                         if (isFinished || multipeerManager.opponentWon) && multipeerManager.gameReady {
@@ -100,16 +111,16 @@ struct ContentView: View {
                 .padding(.top, geo.size.height * 0.10)
                 
                 connectionToolbar
-                    .offset(y: 465)
-                
+                    .padding(.top, geo.size.height * 0.6)
+
                 UserInput(
                     maze: $maze,
                     position: $position,
                     isFinished: $isFinished,
                     multipeerManager: multipeerManager,
                 )
-                .offset(x: -10, y:533)
-                
+                .padding(.top, geo.size.height * 0.67)
+
             }
         }
         .onAppear {
@@ -266,49 +277,55 @@ struct ContentView: View {
     }
     
     private var connectionToolbar: some View {
-        HStack {
-            if multipeerManager.isConnected {
-                Button {
-                    haptic()
-                    multipeerManager.disconnect()
-                    maze = MazeGenerator2(rows: Constants.rows, cols: Constants.cols)
-                    position = hostStart
-                    isFinished = false
-                    multipeerManager.opponentWon = false
-                } label: {
-                    Rectangle()
-                        .fill(Color(Constants.catridgeColor))
-                        .frame(width: 200, height: 25)
+        VStack(alignment: .leading, spacing: 0) {
+            Text(multipeerManager.isConnected ? "DISCONNECT" : "CONNECT TO ANOTHER PLAYER")
+                .font(.caption2)
+                .fontWeight(.bold)
+                .foregroundColor(!multipeerManager.isConnected ? .white.opacity(0.75) : .red)
+            
+            HStack {
+                if multipeerManager.isConnected {
+                    Button {
+                        haptic()
+                        multipeerManager.disconnect()
+                        maze = MazeGenerator2(rows: Constants.rows, cols: Constants.cols)
+                        position = hostStart
+                        isFinished = false
+                        multipeerManager.opponentWon = false
+                    } label: {
+                        Rectangle()
+                            .fill(Color(Constants.catridgeColor))
+                            .frame(width: 200, height: 25)
+                            .shadow(color: .black, radius: 0, x: 5, y: 5)
+                    }
+                } else {
+                    Button {
+                        haptic()
+                        multipeerManager.startBrowsing()
+                        showPeerSheet = true
+                    } label: {
+                        ZStack{
+                            Rectangle()
+                                .fill(Color(Constants.catridgeColor))
+                                .frame(width: 200, height: 25)
+                                .shadow(color: .black, radius: 0, x: 5, y: 5)
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(multipeerManager.isConnected ? Color.green : Color.orange)
+                        .frame(width: 30, height: 30)
                         .shadow(color: .black, radius: 0, x: 5, y: 5)
                 }
-                .padding(.leading, 25)
-            } else {
-                Button {
-                    haptic()
-                    multipeerManager.startBrowsing()
-                    showPeerSheet = true
-                } label: {
-                    Rectangle()
-                        .fill(Color(Constants.catridgeColor))
-                        .frame(width: 200, height: 25)
-                        .shadow(color: .black, radius: 0, x: 5, y: 5)
-                }
-                .padding(.leading, 25)
-            }
-            
-            Spacer()
-            
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(multipeerManager.isConnected ? Color.green : Color.orange)
-                    .frame(width: 30, height: 30)
-                    .padding(.trailing, 50)
-                    .shadow(color: .black, radius: 0, x: 5, y: 5)
             }
         }
+        .padding(.leading, 25)
+        .padding(.trailing, 50)
     }
-
-
 
     private var peerListSheet: some View {
         NavigationView {
