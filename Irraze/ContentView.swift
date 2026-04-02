@@ -38,9 +38,9 @@ struct ContentView: View {
                     ZStack {
                         if multipeerManager.gameReady {
                             if !showGame {
-                                instructions()
+                                InstructionsView(firstGuide: $firstGuide, secondGuide: $secondGuide, thirdGuide: $thirdGuide, fourthGuide: $fourthGuide, showGame: $showGame)
                                     .frame(width: geo.size.width * 0.65, height: geo.size.height * 0.35)
-                            } else {
+                            } else if !isFinished && !multipeerManager.opponentWon && showGame {
                                 Map()
                                 Obstacles(maze: maze, position: position, isFogged: multipeerManager.isFogged, fogPickups: multipeerManager.fogPickups, swapPickups: multipeerManager.swapPickups, freezePickups: multipeerManager.freezePickups)
                                 Player(maze: maze, position: position, color: localColor)
@@ -64,46 +64,28 @@ struct ContentView: View {
                         }
                         
                         if (isFinished || multipeerManager.opponentWon) && multipeerManager.gameReady {
-                            VStack(spacing: 16){
-                                if isFinished {
-                                    Text("YOU WIN!")
-                                        .font(.custom("PressStart2P-Regular", size: 10))
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.white)
-                                        .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 0)
-                                } else {
-                                    Text("YOU LOSE!")
-                                        .font(.custom("PressStart2P-Regular", size: 10))
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.white)
-                                        .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 0)
-                                }
-                                
-                                Button {
-                                    haptic()
-                                    restartGame()
-                                } label: {
-                                    Text("Try Again")
-                                        .font(.custom("PressStart2P-Regular", size: 10))
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 32)
-                                        .padding(.vertical, 12)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(Color(Constants.catridgeColor))
-                                                .shadow(color: .black, radius: 0, x: 4, y: 4)
-                                        )
-                                }
-                            }
+                            GameOverView(isFinished: isFinished, onTryAgain: {
+                                haptic()
+                                restartGame()
+                            })
+                            .padding(.top, geo.size.height * 0.15)
                         }
                     }
                     .frame(maxWidth: .infinity)
                 }
                 .padding(.top, geo.size.height * 0.10)
                 
-                connectionToolbar
-                    .padding(.top, geo.size.height * 0.6)
+                ConnectionToolbarView(multipeerManager: multipeerManager, showPeerSheet: $showPeerSheet, onDisconnect: {
+                    multipeerManager.disconnect()
+                    maze = MazeGenerator2(rows: Constants.rows, cols: Constants.cols)
+                    position = hostStart
+                    isFinished = false
+                    multipeerManager.opponentWon = false
+                    
+                    firstGuide = true
+                    showGame = false
+                })
+                .padding(.top, geo.size.height * 0.6)
 
                 UserInput(
                     maze: $maze,
@@ -203,7 +185,8 @@ struct ContentView: View {
             if lost { SoundManager.shared.play("gameover") }
         }
         .sheet(isPresented: $showPeerSheet) {
-            peerListSheet
+            PeerListSheetView(multipeerManager: multipeerManager, showPeerSheet: $showPeerSheet)
+                .presentationDetents([.medium])
         }
         .alert("Invitation Received",
                isPresented: $multipeerManager.showInviteAlert) {
@@ -291,256 +274,11 @@ struct ContentView: View {
         }
     }
     
-    private var connectionToolbar: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(multipeerManager.isConnected ? "CLICK HERE TO DISCONNECT" : "CLICK HERE TO CONNECT")
-                .font(.custom("PressStart2P-Regular", size: 7))
-                .fontWeight(.bold)
-                .foregroundColor(!multipeerManager.isConnected ? .white.opacity(0.75) : .red)
-            
-            HStack {
-                if multipeerManager.isConnected {
-                    Button {
-                        haptic()
-                        multipeerManager.disconnect()
-                        maze = MazeGenerator2(rows: Constants.rows, cols: Constants.cols)
-                        position = hostStart
-                        isFinished = false
-                        multipeerManager.opponentWon = false
-                        
-                        firstGuide = true
-                        showGame = false
-                    } label: {
-                        Rectangle()
-                            .fill(Color(Constants.catridgeColor))
-                            .frame(width: 200, height: 25)
-                            .shadow(color: .black, radius: 0, x: 5, y: 5)
-                    }
-                } else {
-                    Button {
-                        haptic()
-                        multipeerManager.startBrowsing()
-                        showPeerSheet = true
-                    } label: {
-                        ZStack{
-                            Rectangle()
-                                .fill(Color(Constants.catridgeColor))
-                                .frame(width: 200, height: 25)
-                                .shadow(color: .black, radius: 0, x: 5, y: 5)
-                        }
-                    }
-                }
-                
-                Spacer()
-                
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(multipeerManager.isConnected ? Color.green : Color.orange)
-                        .frame(width: 30, height: 30)
-                        .shadow(color: .black, radius: 0, x: 5, y: 5)
-                }
-            }
-        }
-        .padding(.leading, 25)
-        .padding(.trailing, 50)
-    }
 
-    private var peerListSheet: some View {
-        NavigationView {
-            Group {
-                if multipeerManager.discoveredPeers.isEmpty {
-                    VStack(spacing: 12) {
-                        ProgressView()
-                        Text("Searching for nearby players...")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    List(multipeerManager.discoveredPeers, id: \.displayName) { peer in
-                        Button {
-                            multipeerManager.invitePeer(peer)
-                            showPeerSheet = false
-                        } label: {
-                            HStack {
-                                Image(systemName: "person.circle.fill")
-                                    .foregroundColor(.blue)
-                                Text(peer.displayName)
-                                Spacer()
-                                Image(systemName: "arrow.right.circle")
-                                    .foregroundColor(.gray)
-                            }
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Nearby Players")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        multipeerManager.stopBrowsing()
-                        showPeerSheet = false
-                    }
-                }
-            }
-        }
-        .presentationDetents([.medium])
-    }
-
-    @ViewBuilder
-    private func instructions() -> some View {
-        VStack {
-            if firstGuide {
-                VStack(spacing: 20) {
-                    Text("RACE TO THE BOTTOM OF THE MAZE")
-                        .font(.custom("PressStart2P-Regular", size: 10))
-                        .foregroundColor(.black)
-                        .multilineTextAlignment(.center)
-                    
-                    CountdownBar(duration: 5.0)
-                        .padding(.horizontal, 40)
-                }
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                        firstGuide = false
-                        secondGuide = true
-                    }
-                }
-            } else if secondGuide {
-                VStack(spacing: 20) {
-                    Text("THERE WILL BE 3 POWERS ACROSS THE MAZE....")
-                        .font(.custom("PressStart2P-Regular", size: 10))
-                        .foregroundColor(.black)
-                        .multilineTextAlignment(.center)
-                    
-                    CountdownBar(duration: 5.0)
-                        .padding(.horizontal, 40)
-                }
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                        secondGuide = false
-                        thirdGuide = true
-                    }
-                }
-            } else if thirdGuide {
-                VStack(spacing: 30){
-                    VStack(spacing:10){
-                        Circle()
-                            .fill(Color(Constants.freezeColor))
-                            .frame(width: 12, height: 12)
-                            .shadow(radius: 3)
-                        Text("FREEZE")
-                            .font(.custom("PressStart2P-Regular", size: 10))
-                            .foregroundColor(.black)
-                        Text("Freeze opponent's movement")
-                            .font(.custom("PressStart2P-Regular", size: 7))
-                            .foregroundColor(.black)
-                            .multilineTextAlignment(.center)
-                    }
-                    VStack(spacing:10){
-                        Circle()
-                            .fill(Color.indigo)
-                            .frame(width: 12, height: 12)
-                            .shadow(radius: 3)
-                        Text("SWAP")
-                            .font(.custom("PressStart2P-Regular", size: 10))
-                            .foregroundColor(.black)
-                        Text("Swap position with the opponent's")
-                            .font(.custom("PressStart2P-Regular", size: 7))
-                            .foregroundColor(.black)
-                            .multilineTextAlignment(.center)
-                    }
-                    VStack(spacing:10){
-                        Circle()
-                            .fill(Color.brown)
-                            .frame(width: 12, height: 12)
-                            .shadow(radius: 3)
-                        Text("FOG")
-                            .font(.custom("PressStart2P-Regular", size: 10))
-                            .foregroundColor(.black)
-                        Text("Fog opponent's vision")
-                            .font(.custom("PressStart2P-Regular", size: 7))
-                            .foregroundColor(.black)
-                            .multilineTextAlignment(.center)
-                    }
-                    
-                    CountdownBar(duration: 10.0)
-                        .padding(.horizontal, 40)
-                }
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                        thirdGuide = false
-                        fourthGuide = true
-                    }
-                }
-            } else if fourthGuide {
-                VStack(spacing: 30){
-                    VStack{
-                        Circle()
-                            .fill(Color.gray)
-                            .frame(width: 40, height: 40)
-                            .offset(x: -20)
-                            .shadow(color: .black, radius: 0, x: 5, y: 5)
-                        Circle()
-                            .fill(Color.gray)
-                            .frame(width: 40, height: 40)
-                            .offset(x: 20)
-                            .shadow(color: .black, radius: 0, x: 5, y: 5)
-                    }
-                    
-                    VStack(spacing: 10){
-                        Text("SKILL BUTTONS")
-                            .font(.custom("PressStart2P-Regular", size: 10))
-                            .foregroundColor(.black)
-                        Text("Will be available when you picked up a skill")
-                            .font(.custom("PressStart2P-Regular", size: 7))
-                            .foregroundColor(.black)
-                            .multilineTextAlignment(.center)
-                    }
-                    
-                    CountdownBar(duration: 10.0)
-                        .padding(.horizontal, 40)
-                }
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                        showGame = true
-                        fourthGuide = false
-                        firstGuide = true
-                        SoundManager.shared.play("gamestart")
-                    }
-                }
-            }
-        }
-    }
 }
 
 #Preview {
     ContentView()
 }
 
-struct CountdownBar: View {
-    let duration: Double
-    @State private var progress: CGFloat = 0.0
-    
-    var body: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                Rectangle()
-                    .stroke(Color.black, lineWidth: 2)
-                
-                Rectangle()
-                    .fill(Color.black)
-                    .frame(width: max(0, geo.size.width * progress - 4))
-                    .padding(2)
-            }
-        }
-        .frame(height: 12)
-        .onAppear {
-            progress = 0.0
-            withAnimation(.linear(duration: duration)) {
-                progress = 1.0
-            }
-        }
-    }
-}
+
