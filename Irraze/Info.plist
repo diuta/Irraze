@@ -4,8 +4,8 @@
 <dict>
 	<key>NSBonjourServices</key>
 	<array>
-		<string>_dysob-maze._tcp</string>
-		<string>_dysob-maze._udp</string>
+		<string>_irraze-maze._tcp</string>
+		<string>_irraze-maze._udp</string>
 	</array>
 	<key>UIAppFonts</key>
 	<array>

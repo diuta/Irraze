@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct Dysob: App {
+struct Irraze: App {
     var body: some Scene {
         WindowGroup {
             ContentView()

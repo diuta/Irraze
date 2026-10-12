@@ -4,7 +4,7 @@ import MultipeerConnectivity
 import SwiftUI
 
 class MultipeerManager: NSObject, ObservableObject {
-    private let serviceType = "dysob-maze"
+    private let serviceType = "irraze-maze"
     let myPeerID = MCPeerID(displayName: UIDevice.current.name)
     private var session: MCSession
     private var advertiser: MCNearbyServiceAdvertiser
