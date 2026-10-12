@@ -1,6 +1,6 @@
 import Foundation
 
-struct MazeGenerator2 {
+struct Maze {
     let rows: Int
     let cols: Int
     private(set) var grid: [[Bool]]
@@ -8,9 +8,7 @@ struct MazeGenerator2 {
     init(rows: Int, cols: Int) {
         self.rows = rows
         self.cols = cols
-
         self.grid = Array(repeating: Array(repeating: true, count: cols), count: rows)
-
         generate()
     }
 
@@ -26,14 +24,28 @@ struct MazeGenerator2 {
     }
 
     func isFinish(row: Int, col: Int) -> Bool {
-        return row == rows - 2 && col == cols - 2
+        row == rows - 2 && col == cols - 2
+    }
+
+    func randomPickups(perSkill count: Int) -> [SkillPickup] {
+        var tiles: [(row: Int, col: Int)] = []
+        for row in 1..<rows - 1 {
+            for col in 1..<cols - 1
+            where !isWall(row: row, col: col) && !isFinish(row: row, col: col)
+                && !(row == 1 && (col == 1 || col == cols - 2)) {
+                tiles.append((row, col))
+            }
+        }
+        tiles.shuffle()
+        return SkillType.allCases.enumerated().flatMap { index, skill in
+            tiles.dropFirst(index * count).prefix(count).map { SkillPickup(row: $0.row, col: $0.col, skill: skill) }
+        }
     }
 
     private mutating func generate() {
         grid[1][1] = false
 
         var frontiers: [(Int, Int, Int, Int)] = []
-
         addFrontiers(row: 1, col: 1, frontiers: &frontiers)
 
         while !frontiers.isEmpty {
