@@ -15,8 +15,10 @@ final class GameModel: ObservableObject {
     @Published private(set) var outcome = Outcome.playing
     @Published private(set) var isReady = false
     @Published private(set) var tutorialStep: Int? = 0
+    @Published private(set) var incomingSkill: SkillType?
 
     private var effectTimers: [SkillType: Task<Void, Never>] = [:]
+    private var bannerTimer: Task<Void, Never>?
     private var networkChanges: AnyCancellable?
 
     var isFogged: Bool { effects.contains(.fog) }
@@ -111,10 +113,12 @@ final class GameModel: ObservableObject {
             SoundManager.shared.play("gameover")
         case .skill(let skill):
             suffer(skill)
+            announce(skill)
         case .swap(let position):
             withAnimation(.spring()) { myPosition = position }
             network.send(.position(myPosition))
             collectPickup()
+            announce(.swap)
         case .pickupCollected(let row, let col):
             pickups.removeAll { $0.row == row && $0.col == col }
         }
@@ -146,6 +150,8 @@ final class GameModel: ObservableObject {
         effectTimers.values.forEach { $0.cancel() }
         effectTimers = [:]
         effects = []
+        bannerTimer?.cancel()
+        incomingSkill = nil
         tutorialStep = 0
         myPosition = start
     }
@@ -162,9 +168,19 @@ final class GameModel: ObservableObject {
     private func suffer(_ skill: SkillType) {
         effects.insert(skill)
         effectTimers[skill]?.cancel()
-        effectTimers[skill] = Task {
-            try? await Task.sleep(for: .seconds(Constants.effectSeconds))
-            if !Task.isCancelled { effects.remove(skill) }
+        effectTimers[skill] = after(Constants.effectSeconds) { self.effects.remove(skill) }
+    }
+
+    private func announce(_ skill: SkillType) {
+        incomingSkill = skill
+        bannerTimer?.cancel()
+        bannerTimer = after(1.5) { self.incomingSkill = nil }
+    }
+
+    private func after(_ seconds: Double, _ action: @escaping @MainActor () -> Void) -> Task<Void, Never> {
+        Task {
+            try? await Task.sleep(for: .seconds(seconds))
+            if !Task.isCancelled { action() }
         }
     }
 }

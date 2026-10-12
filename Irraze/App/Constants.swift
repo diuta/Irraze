@@ -14,6 +14,7 @@ enum Constants {
     static var maxX: CGFloat { CGFloat(cols - 1) / 2 * step }
     static var maxY: CGFloat { CGFloat(maxRowView - 1) / 2 * step }
 
+    static let backgroundColor = Color(red: 137/255, green: 196/255, blue: 184/255)
     static let catridgeColor = Color(red: 84/255, green: 109/255, blue: 102/255)
     static let moveButtonColor = Color(red: 252/255, green: 232/255, blue: 80/255)
     static let freezeColor = Color(red: 122/255, green: 191/255, blue: 186/255)

@@ -46,6 +46,16 @@ struct MazeView: View {
         }
         .frame(width: CGFloat(game.maze.cols) * Constants.step - Constants.spacing,
                height: CGFloat(Constants.maxRowView) * Constants.step - Constants.spacing)
+        .overlay {
+            if let skill = game.incomingSkill {
+                Text("\(skill.rawValue.uppercased())!")
+                    .font(.pixel(36))
+                    .foregroundColor(skill.color)
+                    .shadow(color: .black, radius: 0, x: 3, y: 3)
+                    .transition(.scale.combined(with: .opacity))
+            }
+        }
+        .animation(.spring(), value: game.incomingSkill)
     }
 
     private func isVisible(row: Int, col: Int) -> Bool {

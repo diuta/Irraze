@@ -3,31 +3,37 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var game = GameModel()
 
+    private let stage = CGSize(width: 402, height: 874)
+
     var body: some View {
         GeometryReader { geo in
-            Image("bmo2")
-                .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
-
             ZStack(alignment: .topLeading) {
+                Image("bmo2")
+                    .resizable()
+                    .frame(width: stage.width, height: stage.height)
+
                 ZStack {
-                    board(geo.size)
+                    board
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.top, geo.size.height * 0.10)
+                .padding(.top, 140)
 
                 ConnectionToolbarView(network: game.network)
-                    .padding(.top, geo.size.height * 0.6)
+                    .padding(.top, 529)
 
                 ControlsView(game: game)
-                    .padding(.top, geo.size.height * 0.67)
+                    .padding(.top, 583)
             }
+            .frame(width: stage.width, height: stage.height, alignment: .topLeading)
+            .scaleEffect(min(geo.size.width / stage.width, geo.size.height / stage.height))
+            .frame(width: geo.size.width, height: geo.size.height)
         }
+        .background(Constants.backgroundColor)
+        .ignoresSafeArea()
     }
 
     @ViewBuilder
-    private func board(_ size: CGSize) -> some View {
+    private var board: some View {
         if !game.isReady {
             VStack(spacing: 12) {
                 ProgressView()
@@ -36,17 +42,17 @@ struct ContentView: View {
                     .font(.pixel(10))
                     .foregroundColor(.black)
             }
-            .padding(.top, size.height * 0.15)
+            .padding(.top, 117)
             .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 0)
         } else if game.outcome != .playing {
             GameOverView(won: game.outcome == .won) {
                 haptic()
                 game.restart()
             }
-            .padding(.top, size.height * 0.15)
+            .padding(.top, 117)
         } else if let step = game.tutorialStep {
             InstructionsView(step: step) { game.nextTutorialStep() }
-                .frame(width: size.width * 0.65, height: size.height * 0.35)
+                .frame(width: 261, height: 272)
         } else {
             MazeView(game: game)
         }
